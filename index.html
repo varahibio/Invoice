@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Varahi Invoices</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ACCESS DENIED SCREEN -->
+    <div id="denied-screen" class="screen" style="display: none;">
+        <div class="login-box" style="text-align: center;">
+            <h2 style="color: #e3342f;">Access Denied</h2>
+            <p id="denied-email-text" style="color: #555; font-size: 14px; margin: 0;"></p>
+            <p style="color: #777; font-size: 13px;">This Google account is not authorized to access the Varahi Portal. Contact the administrator.</p>
+            <button id="denied-back-btn" type="button">Back to Login</button>
+        </div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="screen">
+        <div class="login-box">
+            <h2>Varahi Portal</h2>
+            <button id="google-login-btn" class="google-btn" type="button">
+                <svg class="google-icon" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                Sign in with Google
+            </button>
+
+            <div class="login-divider"><span>OR</span></div>
+
+            <input type="email" id="email" placeholder="Email address" autocomplete="username">
+            <input type="password" id="password" placeholder="Master Password" autocomplete="current-password">
+            <button id="login-btn" type="button">Login</button>
+            <p id="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- MAIN APP SCREEN (Mobile Form) -->
+    <div id="app-screen" class="screen" style="display: none;">
+        <div class="header-bar">
+            <h2>New Invoice</h2>
+            <button id="logout-btn" class="small-btn" type="button">Logout</button>
+        </div>
+
+        <div class="mobile-ui-form">
+            <input type="text" id="client-name" placeholder="Client Name (e.g., Sree Vijaya Durga Traders)">
+            <input type="text" id="client-address" placeholder="Billing Address">
+            
+            <div class="row">
+                <input type="text" id="invoice-number" placeholder="Invoice #">
+                <input type="date" id="invoice-date">
+            </div>
+            
+            <hr>
+
+            <select id="product-select">
+                <option value="" disabled selected>Loading products...</option>
+            </select>
+
+            <div class="row">
+                <input type="text" id="product-batch" placeholder="Batch # (e.g., TA434)">
+                <input type="text" id="product-mfg" placeholder="Mfg Dt. (e.g., Apr-2026)">
+            </div>
+            
+            <div class="row">
+                <input type="number" id="product-qty" placeholder="Qty" min="1" value="1">
+                <button id="add-item-btn" type="button">Add to Bill</button>
+            </div>
+
+            <hr>
+            
+            <div class="row align-center">
+                <label for="discount-pct" style="flex: 2; font-weight: bold; color: #333;">Discount (%):</label>
+                <input type="number" id="discount-pct" placeholder="0" min="0" max="100" value="0">
+            </div>
+
+            <hr>
+
+            <h3>Current Bill</h3>
+            <div id="cart-list" class="cart-list-container">
+                <p style="color: #777; font-size: 14px; margin: 0;">Cart is empty.</p>
+            </div>
+            
+            <div class="totals-box">
+                <p>Subtotal: <span id="cart-subtotal">₹0.00</span></p>
+                <p>Discount: <span id="cart-discount">- ₹0.00</span></p>
+                <h3 id="cart-total">Total: ₹0.00</h3>
+            </div>
+
+            <button id="generate-btn" class="generate-btn" type="button">Generate Invoice</button>
+        </div>
+    </div>
+
+    <!-- PRINT VIEW -->
+    <div id="print-area">
+        <div class="print-header">
+            <div class="print-logo-container">
+                <img src="https://raw.githubusercontent.com/hethwiQ/siteassets/main/images/Projects/varahi/Logo.svg" alt="Varahi Biologicals Logo" style="width: 120px; height: auto;">
+            </div>
+            <div class="print-company-info">
+                <h2>Varahi Biologicals</h2>
+                <p>Plot No 60/A, D.No.2-30/JV/90/A/BR/603, JV Colony, Gachibowli</p>
+                <p>Hyderabad 500032</p>
+                <p>GSTIN : 36AUCPK7425M1ZB</p>
+                <p>8333979678</p>
+                <p>varahibio@gmail.com</p>
+            </div>
+            <div class="print-meta">
+                <p class="meta-label">BILL OF SUPPLY</p>
+                <p class="meta-value" id="print-inv-num">INV0001</p>
+                
+                <p class="meta-label" style="margin-top: 15px;">DATE</p>
+                <p class="meta-value" id="print-date">Apr 4, 2026</p>
+                
+                <p class="meta-label" style="margin-top: 15px;">DUE</p>
+                <p class="meta-value">On Receipt</p>
+                
+                <p class="meta-label" style="margin-top: 15px;">BALANCE DUE</p>
+                <p class="meta-value" style="font-weight: bold;">INR <span id="print-balance-top">0.00</span></p>
+            </div>
+        </div>
+
+        <div class="print-bill-to">
+            <p class="meta-label">BILL TO</p>
+            <h3 id="print-client-name">Client Name</h3>
+            <p id="print-client-address">Client Address</p>
+        </div>
+
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="text-align: left;">DESCRIPTION</th>
+                    <th style="text-align: right; width: 100px;">RATE</th>
+                    <th style="text-align: right; width: 80px;">QTY</th>
+                    <th style="text-align: right; width: 120px;">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody id="print-table-body"></tbody>
+        </table>
+
+        <div class="print-totals-container">
+            <div class="print-total-row">
+                <span>SUBTOTAL</span>
+                <span id="print-subtotal">₹0.00</span>
+            </div>
+            <div class="print-total-row" id="print-discount-row" style="display: none;">
+                <span>DISCOUNT</span>
+                <span id="print-discount-val">- ₹0.00</span>
+            </div>
+            <div class="print-total-row">
+                <span>TOTAL</span>
+                <span id="print-total">₹0.00</span>
+            </div>
+            <div class="print-total-row balance-due-row">
+                <span>BALANCE DUE</span>
+                <span style="font-weight: bold; font-size: 16px;">INR <span id="print-balance-bottom">0.00</span></span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
