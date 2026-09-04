@@ -44,12 +44,15 @@
     <!-- MAIN APP SCREEN (Mobile Form) -->
     <div id="app-screen" class="screen" style="display: none;">
         <div class="header-bar">
-            <h2>New Invoice</h2>
+            <div class="header-user-info">
+                <h2>New Invoice</h2>
+                <span id="user-badge" class="user-email-badge"></span>
+            </div>
             <button id="logout-btn" class="small-btn" type="button">Logout</button>
         </div>
 
         <div class="mobile-ui-form">
-            <input type="text" id="client-name" placeholder="Client Name (e.g., Sree Vijaya Durga Traders)">
+            <input type="text" id="client-name" placeholder="Client Name">
             <input type="text" id="client-address" placeholder="Billing Address">
             
             <div class="row">
@@ -64,8 +67,8 @@
             </select>
 
             <div class="row">
-                <input type="text" id="product-batch" placeholder="Batch # (e.g., TA434)">
-                <input type="text" id="product-mfg" placeholder="Mfg Dt. (e.g., Apr-2026)">
+                <input type="text" id="product-batch" placeholder="Batch Num.">
+                <input type="text" id="product-mfg" placeholder="Mfg Dt.">
             </div>
             
             <div class="row">
@@ -93,7 +96,68 @@
                 <h3 id="cart-total">Total: ₹0.00</h3>
             </div>
 
+            <!-- Optional Cloud Storage Checkbox -->
+            <div class="save-checkbox-container">
+                <input type="checkbox" id="save-invoice-checkbox">
+                <label for="save-invoice-checkbox">Save Invoice to Cloud?</label>
+            </div>
+
             <button id="generate-btn" class="generate-btn" type="button">Generate Invoice</button>
+
+            <hr>
+
+            <!-- Search Saved Invoices Section -->
+            <div class="search-section">
+                <h3>Find Saved Invoice</h3>
+                <div class="row">
+                    <input type="text" id="search-invoice-input" placeholder="e.g., INV0001">
+                    <button id="search-invoice-btn" type="button">Search</button>
+                </div>
+                <p id="search-status-msg" class="status-msg"></p>
+                <button id="view-details-btn" class="view-details-btn" type="button" style="display: none;">View Details</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVOICE DETAILS SCREEN -->
+    <div id="details-screen" class="screen" style="display: none;">
+        <div class="header-bar">
+            <h2>Invoice Details</h2>
+            <button id="details-back-btn" class="small-btn" type="button">Back</button>
+        </div>
+
+        <div class="mobile-ui-form">
+            <div class="details-card">
+                <div class="details-row">
+                    <span class="details-label">Invoice #:</span>
+                    <strong id="detail-inv-num"></strong>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Date:</span>
+                    <span id="detail-date"></span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Client Name:</span>
+                    <strong id="detail-client-name"></strong>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Address:</span>
+                    <span id="detail-client-address"></span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Saved By:</span>
+                    <span id="detail-saved-by" style="font-size: 12px; color: #666;"></span>
+                </div>
+            </div>
+
+            <h3>Items Billed</h3>
+            <div id="detail-items-list" class="cart-list-container"></div>
+
+            <div class="totals-box">
+                <p>Subtotal: <span id="detail-subtotal">₹0.00</span></p>
+                <p>Discount: <span id="detail-discount">- ₹0.00</span></p>
+                <h3 id="detail-total">Total: ₹0.00</h3>
+            </div>
         </div>
     </div>
 

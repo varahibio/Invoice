@@ -39,7 +39,7 @@
     font-display: swap;
 }
 
-/* --- SCREEN STYLES --- */
+/* --- SCREEN STYLES (Mobile UI) --- */
 body {
     font-family: 'Haffer VF', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
@@ -155,7 +155,23 @@ button:active { background-color: #cc1f1a; }
     margin-bottom: 20px;
 }
 
-.header-bar h2 { margin: 0; }
+.header-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.header-user-info h2 {
+    margin: 0;
+    text-align: left;
+}
+
+.user-email-badge {
+    font-size: 11px;
+    color: #777;
+    margin-top: 3px;
+    word-break: break-all;
+}
 
 .small-btn {
     padding: 8px 12px;
@@ -240,6 +256,72 @@ hr {
 
 #cart-total { margin-top: 10px; margin-bottom: 0; }
 
+.save-checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.save-checkbox-container input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.save-checkbox-container label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+}
+
+.search-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 5px;
+}
+
+.status-msg {
+    font-size: 13px;
+    margin: 0;
+    text-align: center;
+    font-weight: 500;
+}
+
+.status-success { color: #28a745; }
+.status-error { color: #e3342f; }
+
+.view-details-btn {
+    background-color: #2b6cb0;
+    margin-top: 5px;
+}
+
+.view-details-btn:active {
+    background-color: #1a4971;
+}
+
+.details-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.details-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.details-label {
+    color: #777;
+}
+
 #error-msg {
     color: #e3342f;
     text-align: center;
@@ -248,9 +330,10 @@ hr {
     font-size: 14px;
 }
 
+/* Hide print layout on screens */
 #print-area { display: none; }
 
-/* --- PRINT STYLES --- */
+/* --- PRINT STYLES (PDF / Paper) --- */
 @media print {
     @page { margin: 0; }
 

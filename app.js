@@ -5,7 +5,9 @@ import {
     signInWithPopup, 
     GoogleAuthProvider, 
     signOut, 
-    onAuthStateChanged 
+    onAuthStateChanged,
+    setPersistence,
+    browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -25,17 +27,24 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Cart & Inactivity State
+// Enable Local Persistence (Session persists across refreshes)
+setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+// Cart, Inactivity & Search Cache
 let cart = [];
 let inactivityTimer;
+let currentAuthenticatedUser = null;
+let searchedInvoiceData = null;
 const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutes
 
 // DOM Elements
 const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
+const detailsScreen = document.getElementById('details-screen');
 const deniedScreen = document.getElementById('denied-screen');
 const deniedEmailText = document.getElementById('denied-email-text');
 const deniedBackBtn = document.getElementById('denied-back-btn');
+const userBadge = document.getElementById('user-badge');
 
 const productSelect = document.getElementById('product-select');
 const batchInput = document.getElementById('product-batch');
@@ -44,6 +53,24 @@ const discountInput = document.getElementById('discount-pct');
 const cartListUI = document.getElementById('cart-list');
 const dateInput = document.getElementById('invoice-date');
 const invoiceNumInput = document.getElementById('invoice-number');
+const saveCheckbox = document.getElementById('save-invoice-checkbox');
+
+const searchInput = document.getElementById('search-invoice-input');
+const searchBtn = document.getElementById('search-invoice-btn');
+const searchStatusMsg = document.getElementById('search-status-msg');
+const viewDetailsBtn = document.getElementById('view-details-btn');
+const detailsBackBtn = document.getElementById('details-back-btn');
+
+// Details Screen Elements
+const detailInvNum = document.getElementById('detail-inv-num');
+const detailDate = document.getElementById('detail-date');
+const detailClientName = document.getElementById('detail-client-name');
+const detailClientAddress = document.getElementById('detail-client-address');
+const detailSavedBy = document.getElementById('detail-saved-by');
+const detailItemsList = document.getElementById('detail-items-list');
+const detailSubtotal = document.getElementById('detail-subtotal');
+const detailDiscount = document.getElementById('detail-discount');
+const detailTotal = document.getElementById('detail-total');
 
 // Set default date to today
 const today = new Date();
@@ -68,18 +95,21 @@ onAuthStateChanged(auth, async (user) => {
         const authorized = await isUserAuthorized(user.email);
         
         if (authorized) {
+            currentAuthenticatedUser = user;
             deniedScreen.style.display = 'none';
             loginScreen.style.display = 'none';
             appScreen.style.display = 'block';
+            userBadge.textContent = `Signed in as: ${user.email}`;
             loadProducts();
             loadInvoiceConfig();
             startInactivityTimer();
         } else {
-            // Sign out unauthorized user immediately and present Denied Screen
             const rejectedEmail = user.email;
+            currentAuthenticatedUser = null;
             await signOut(auth);
             
             appScreen.style.display = 'none';
+            detailsScreen.style.display = 'none';
             loginScreen.style.display = 'none';
             deniedEmailText.textContent = `Signed in as: ${rejectedEmail}`;
             deniedScreen.style.display = 'block';
@@ -87,16 +117,19 @@ onAuthStateChanged(auth, async (user) => {
             removeActivityListeners();
         }
     } else {
+        currentAuthenticatedUser = null;
         if (deniedScreen.style.display !== 'block') {
             loginScreen.style.display = 'flex';
         }
         appScreen.style.display = 'none';
+        detailsScreen.style.display = 'none';
+        userBadge.textContent = "";
         clearTimeout(inactivityTimer);
         removeActivityListeners();
     }
 });
 
-// Back to Login Button from Denied Screen
+// Denied Screen Handler
 deniedBackBtn.addEventListener('click', () => {
     deniedScreen.style.display = 'none';
     loginScreen.style.display = 'flex';
@@ -131,7 +164,7 @@ function startInactivityTimer() {
     resetInactivityTimer();
 }
 
-// Google Sign-In Handler
+// Google Sign-In
 document.getElementById('google-login-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -146,7 +179,7 @@ document.getElementById('google-login-btn').addEventListener('click', (e) => {
         });
 });
 
-// Email/Password Login Handler
+// Email/Password Login
 document.getElementById('login-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -161,14 +194,14 @@ document.getElementById('login-btn').addEventListener('click', (e) => {
         });
 });
 
-// Logout Handler
+// Logout
 document.getElementById('logout-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
     signOut(auth);
 });
 
-// Fetch and set next Invoice Number
+// Invoice Number Auto-Sequence
 async function loadInvoiceConfig() {
     try {
         const counterRef = doc(db, "config", "invoiceCounter");
@@ -185,7 +218,7 @@ async function loadInvoiceConfig() {
     }
 }
 
-// Load Products from Firestore
+// Fetch Products
 async function loadProducts() {
     productSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
     try {
@@ -203,12 +236,11 @@ async function loadProducts() {
     }
 }
 
-// Format Currency
 function formatINR(number) {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(number);
 }
 
-// Add Item Handler
+// Add Item
 document.getElementById('add-item-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -245,7 +277,7 @@ document.getElementById('add-item-btn').addEventListener('click', (e) => {
     updateCartUI();
 });
 
-// Update Cart Summary
+// Update Cart Display
 function updateCartUI() {
     cartListUI.innerHTML = "";
     let subtotal = 0;
@@ -286,7 +318,7 @@ window.removeItem = function(index) {
     updateCartUI();
 }
 
-// Generate Invoice & Print Handler
+// Generate & Print Invoice
 document.getElementById('generate-btn').addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -362,6 +394,29 @@ document.getElementById('generate-btn').addEventListener('click', async (e) => {
     document.getElementById('print-balance-top').textContent = formatINR(finalTotal).replace('₹', '');
     document.getElementById('print-balance-bottom').textContent = formatINR(finalTotal).replace('₹', '');
 
+    // Check if Cloud Save is requested
+    if (saveCheckbox.checked) {
+        try {
+            const invoiceRecord = {
+                invoiceNumber: invNum,
+                date: dateString,
+                clientName: clientName,
+                clientAddress: clientAddress,
+                items: cart,
+                subtotal: subtotal,
+                discountPct: discountPct,
+                discountAmount: discountAmount,
+                total: finalTotal,
+                savedBy: currentAuthenticatedUser ? currentAuthenticatedUser.email : 'System',
+                createdAt: new Date().toISOString()
+            };
+            await setDoc(doc(db, "invoices", invNum), invoiceRecord);
+            console.log(`Invoice ${invNum} successfully saved to Firestore.`);
+        } catch (err) {
+            console.error("Error saving invoice record to Firestore:", err);
+        }
+    }
+
     const originalTitle = document.title;
     document.title = `varahi - ${invNum}`;
 
@@ -370,4 +425,85 @@ document.getElementById('generate-btn').addEventListener('click', async (e) => {
     setTimeout(() => {
         document.title = originalTitle;
     }, 1000);
+});
+
+// Search Saved Invoice
+searchBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const queryId = searchInput.value.trim().toUpperCase();
+    searchStatusMsg.textContent = "";
+    searchStatusMsg.className = "status-msg";
+    viewDetailsBtn.style.display = "none";
+    searchedInvoiceData = null;
+
+    if (!queryId) {
+        searchStatusMsg.textContent = "Please enter an invoice number.";
+        searchStatusMsg.classList.add("status-error");
+        return;
+    }
+
+    searchStatusMsg.textContent = "Searching...";
+    try {
+        const invRef = doc(db, "invoices", queryId);
+        const invSnap = await getDoc(invRef);
+
+        if (invSnap.exists()) {
+            searchedInvoiceData = invSnap.data();
+            searchStatusMsg.textContent = `Invoice ${queryId} found!`;
+            searchStatusMsg.classList.add("status-success");
+            viewDetailsBtn.style.display = "block";
+        } else {
+            searchStatusMsg.textContent = `No invoice found for ${queryId}.`;
+            searchStatusMsg.classList.add("status-error");
+        }
+    } catch (err) {
+        console.error("Error searching invoice:", err);
+        searchStatusMsg.textContent = "Error fetching invoice.";
+        searchStatusMsg.classList.add("status-error");
+    }
+});
+
+// View Details Screen
+viewDetailsBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!searchedInvoiceData) return;
+
+    detailInvNum.textContent = searchedInvoiceData.invoiceNumber;
+    detailDate.textContent = searchedInvoiceData.date;
+    detailClientName.textContent = searchedInvoiceData.clientName;
+    detailClientAddress.textContent = searchedInvoiceData.clientAddress || "None provided";
+    detailSavedBy.textContent = searchedInvoiceData.savedBy || "N/A";
+
+    detailItemsList.innerHTML = "";
+    (searchedInvoiceData.items || []).forEach(item => {
+        const itemTotal = item.rate * item.qty;
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+            <div class="cart-item-details">
+                <span class="cart-item-title">${item.name}</span>
+                <span class="cart-item-math">${item.qty} x ${formatINR(item.rate)} = ${formatINR(itemTotal)} (Batch: ${item.batch || 'N/A'}, Mfg: ${item.mfg || 'N/A'})</span>
+            </div>
+        `;
+        detailItemsList.appendChild(div);
+    });
+
+    detailSubtotal.textContent = formatINR(searchedInvoiceData.subtotal || 0);
+    detailDiscount.textContent = `- ${formatINR(searchedInvoiceData.discountAmount || 0)}`;
+    detailTotal.textContent = `Total: ${formatINR(searchedInvoiceData.total || 0)}`;
+
+    appScreen.style.display = "none";
+    detailsScreen.style.display = "block";
+});
+
+// Return to Invoice Generator Screen
+detailsBackBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    detailsScreen.style.display = "none";
+    appScreen.style.display = "block";
 });
