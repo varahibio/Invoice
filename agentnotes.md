@@ -117,6 +117,14 @@ Authentication is secured via Firebase's authorized domains list. Only the follo
 ## 8. Changelog / Agent Log
 *Newest entries at top. Each entry: what changed, why, and current verification status.*
 
+### 2026-09-10 (Synchronous Native Print Attempt & Failure)
+*   **What was attempted:** Completely removed third-party PDF generation libraries (`html2pdf.js`) and popup/blob tab-opening tricks. Reverted strictly to a single "Generate Invoice" button executing a synchronous `window.print()` call with document-title hijacking (`Varahi_Invoice_INVXXXX`) to let the native OS handle printing and saving.
+*   **Results / Real-Device Failures:**
+    *   **iOS:** Failed as usual; produced a blank screen/page behavior due to mobile Safari's aggressive print-pipeline restrictions.
+    *   **Android:** Broke the flow completely, resulting in blank PDF/print outputs.
+    *   **PC (Desktop):** Remained functional (desktop browsers natively support synchronous title-hijacked printing).
+*   **Status:** Disapproved by user due to persistent mobile breakage. The native single-tap print pipeline is unviable for cross-platform consistency on mobile web/PWA viewports without robust background rendering.
+
 ### 2026-09-10 (later same day)
 User confirmed via screen recording that the previous fix's double-`requestAnimationFrame` was the actual problem — see Section 6.A for the corrected root-cause writeup. Also delivered a broader round of requested improvements:
 *   **Print bug (real fix this time):** Removed the `requestAnimationFrame` delay entirely; `window.print()` is now called truly synchronously in the click handler. See 6.A.
@@ -138,3 +146,5 @@ User confirmed via screen recording that the previous fix's double-`requestAnima
 *   Changed `window.print()` call in the Generate Invoice handler to fire inside a double `requestAnimationFrame`.
 *   Added `@media print` reset for `html, body` flex/viewport-height styling to fix the Android blank-page issue.
 *   **Status: awaiting real iOS device testing** — user does not yet have iPhone access to verify. Do not assume 6.A/6.B are resolved until confirmed.
+
+
