@@ -337,10 +337,18 @@ hr {
 @media print {
     @page { margin: 0; }
 
-    body {
+    html, body {
         background-color: white;
         margin: 0;
         padding: 0;
+        /* The on-screen layout makes body a min-height:100vh flexbox to
+           center the login/app card. Left unset here, that forces the
+           printed page to be at least one full viewport tall on top of
+           the invoice content itself, which is what was spilling a
+           near-empty second page on some browsers (Android Chrome). */
+        display: block !important;
+        min-height: 0 !important;
+        height: auto !important;
     }
 
     .screen { display: none !important; }

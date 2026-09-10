@@ -76,6 +76,17 @@ const detailTotal = document.getElementById('detail-total');
 const today = new Date();
 dateInput.value = today.toISOString().split('T')[0];
 
+// Preload the print logo so it's already cached & decoded before the
+// user ever taps "Generate Invoice". On iOS Safari, printing an image
+// that hasn't finished loading/decoding yet can cause window.print()
+// to be dropped or delayed, and can cause the image to render at the
+// wrong size.
+const printLogoImg = document.getElementById('print-logo-img');
+if (printLogoImg && !printLogoImg.complete) {
+    const preload = new Image();
+    preload.src = printLogoImg.src;
+}
+
 // Authorization Verification
 async function isUserAuthorized(email) {
     if (!email) return false;
@@ -415,15 +426,26 @@ document.getElementById('generate-btn').addEventListener('click', (e) => {
         }).catch(console.error);
     }
 
-    // Set title and synchronously call print immediately
+    // Set title, then call print.
+    // NOTE: on iOS Safari, calling window.print() in the same tick as a
+    // large synchronous DOM update (like the table rebuild above) can
+    // cause the print dialog to be silently dropped or deferred until
+    // the next user interaction. Waiting two animation frames lets the
+    // browser finish painting the updated print view first, while still
+    // running close enough to the original tap for iOS to treat it as
+    // part of the same user gesture (so the print sheet is still allowed
+    // to appear).
     const originalTitle = document.title;
     document.title = `varahi - ${invNum}`;
 
-    window.print();
-
-    setTimeout(() => {
-        document.title = originalTitle;
-    }, 1000);
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            window.print();
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 1000);
+        });
+    });
 });
 
 // Search Saved Invoice
