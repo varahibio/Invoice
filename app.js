@@ -46,6 +46,23 @@ const deniedEmailText = document.getElementById('denied-email-text');
 const deniedBackBtn = document.getElementById('denied-back-btn');
 const userBadge = document.getElementById('user-badge');
 
+const globalLoader = document.getElementById('global-loader');
+const loaderText = document.getElementById('loader-text');
+
+function showLoader(text) {
+    loaderText.textContent = text || 'Loading…';
+    globalLoader.style.display = 'flex';
+}
+
+function hideLoader() {
+    globalLoader.style.display = 'none';
+}
+
+// True only while we're actively in the middle of a sign-in attempt the
+// user just initiated — guards against showing the loader on the app's
+// very first, silent auth check when the page loads with no user.
+let signInInProgress = false;
+
 const productSelect = document.getElementById('product-select');
 const batchInput = document.getElementById('product-batch');
 const mfgInput = document.getElementById('product-mfg');
@@ -103,17 +120,21 @@ async function isUserAuthorized(email) {
 // Auth Listener
 onAuthStateChanged(auth, async (user) => {
     if (user) {
+        if (signInInProgress) showLoader('Checking your access…');
         const authorized = await isUserAuthorized(user.email);
         
         if (authorized) {
             currentAuthenticatedUser = user;
+            if (signInInProgress) showLoader('Loading your workspace…');
+
             deniedScreen.style.display = 'none';
             loginScreen.style.display = 'none';
             appScreen.style.display = 'block';
             userBadge.textContent = `Signed in as: ${user.email}`;
-            loadProducts();
-            loadInvoiceConfig();
+            await Promise.all([loadProducts(), loadInvoiceConfig()]);
             startInactivityTimer();
+            signInInProgress = false;
+            hideLoader();
         } else {
             const rejectedEmail = user.email;
             currentAuthenticatedUser = null;
@@ -126,6 +147,8 @@ onAuthStateChanged(auth, async (user) => {
             deniedScreen.style.display = 'block';
             clearTimeout(inactivityTimer);
             removeActivityListeners();
+            signInInProgress = false;
+            hideLoader();
         }
     } else {
         currentAuthenticatedUser = null;
@@ -137,6 +160,8 @@ onAuthStateChanged(auth, async (user) => {
         userBadge.textContent = "";
         clearTimeout(inactivityTimer);
         removeActivityListeners();
+        signInInProgress = false;
+        hideLoader();
     }
 });
 
@@ -179,11 +204,17 @@ function startInactivityTimer() {
 document.getElementById('google-login-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
+    signInInProgress = true;
+    showLoader('Signing in…');
     signInWithPopup(auth, googleProvider)
         .then(() => {
             document.getElementById('error-msg').style.display = 'none';
+            // Loader stays up — onAuthStateChanged takes over from here
+            // and hides it once the authorized workspace is ready.
         })
         .catch((error) => {
+            signInInProgress = false;
+            hideLoader();
             const errorMsg = document.getElementById('error-msg');
             errorMsg.style.display = 'block';
             errorMsg.textContent = error.message || "Google sign-in failed.";
@@ -194,11 +225,16 @@ document.getElementById('google-login-btn').addEventListener('click', (e) => {
 document.getElementById('login-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
+    signInInProgress = true;
+    showLoader('Signing in…');
     signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
         .then(() => {
             document.getElementById('error-msg').style.display = 'none';
+            // Loader stays up — onAuthStateChanged hides it once ready.
         })
         .catch(() => {
+            signInInProgress = false;
+            hideLoader();
             const errorMsg = document.getElementById('error-msg');
             errorMsg.style.display = 'block';
             errorMsg.textContent = "Incorrect email or password.";
@@ -209,7 +245,8 @@ document.getElementById('login-btn').addEventListener('click', (e) => {
 document.getElementById('logout-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    signOut(auth);
+    showLoader('Signing out…');
+    signOut(auth).finally(hideLoader);
 });
 
 // Invoice Number Auto-Sequence
@@ -322,6 +359,26 @@ function updateCartUI() {
     document.getElementById('cart-total').textContent = `Total: ${formatINR(finalTotal)}`;
 }
 
+// Reusable button loading-state helper (used anywhere a tap kicks off
+// work the user should get instant feedback on).
+function setButtonLoading(btn, loading, loadingText) {
+    if (!btn) return;
+    if (loading) {
+        if (btn.dataset.originalText === undefined) {
+            btn.dataset.originalText = btn.textContent;
+        }
+        btn.textContent = loadingText || 'Please wait…';
+        btn.disabled = true;
+        btn.classList.add('is-loading');
+    } else {
+        if (btn.dataset.originalText !== undefined) {
+            btn.textContent = btn.dataset.originalText;
+        }
+        btn.disabled = false;
+        btn.classList.remove('is-loading');
+    }
+}
+
 discountInput.addEventListener('input', updateCartUI);
 
 window.removeItem = function(index) {
@@ -330,7 +387,8 @@ window.removeItem = function(index) {
 }
 
 // Generate & Print Invoice
-document.getElementById('generate-btn').addEventListener('click', (e) => {
+const generateBtn = document.getElementById('generate-btn');
+generateBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -338,6 +396,11 @@ document.getElementById('generate-btn').addEventListener('click', (e) => {
         alert("Cannot generate an empty invoice. Add items to the bill.");
         return;
     }
+
+    // Give instant feedback the tap registered. This has to be set
+    // *before* window.print() below, and window.print() itself must
+    // still fire perfectly synchronously afterwards — see note there.
+    setButtonLoading(generateBtn, true, 'Preparing…');
 
     const clientName = document.getElementById('client-name').value || "Cash Customer";
     const clientAddress = document.getElementById('client-address').value || "";
@@ -426,26 +489,27 @@ document.getElementById('generate-btn').addEventListener('click', (e) => {
         }).catch(console.error);
     }
 
-    // Set title, then call print.
-    // NOTE: on iOS Safari, calling window.print() in the same tick as a
-    // large synchronous DOM update (like the table rebuild above) can
-    // cause the print dialog to be silently dropped or deferred until
-    // the next user interaction. Waiting two animation frames lets the
-    // browser finish painting the updated print view first, while still
-    // running close enough to the original tap for iOS to treat it as
-    // part of the same user gesture (so the print sheet is still allowed
-    // to appear).
+    // Call print() synchronously, in the same tick as the click.
+    // NOTE: iOS Safari requires window.print() to run inside the direct,
+    // unbroken call stack of the user's tap. Any delay — even a
+    // requestAnimationFrame or setTimeout(0) — makes iOS treat it as an
+    // "automatic" print, which it silently defers to the next real user
+    // gesture and then flags with a "This website has been blocked from
+    // automatically printing" prompt. That's what was happening before:
+    // the Logout button appeared to trigger printing because it was the
+    // next tap iOS trusted enough to flush the pending request through.
+    // The real fix is to make sure nothing async stands between the tap
+    // and this call — the print logo is preloaded (see top of file) and
+    // served locally specifically so this can stay synchronous.
     const originalTitle = document.title;
     document.title = `varahi - ${invNum}`;
 
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            window.print();
-            setTimeout(() => {
-                document.title = originalTitle;
-            }, 1000);
-        });
-    });
+    window.print();
+
+    setTimeout(() => {
+        document.title = originalTitle;
+        setButtonLoading(generateBtn, false);
+    }, 600);
 });
 
 // Search Saved Invoice
@@ -466,6 +530,7 @@ searchBtn.addEventListener('click', async (e) => {
     }
 
     searchStatusMsg.textContent = "Searching...";
+    setButtonLoading(searchBtn, true, 'Searching…');
     try {
         const invRef = doc(db, "invoices", queryId);
         const invSnap = await getDoc(invRef);
@@ -483,6 +548,8 @@ searchBtn.addEventListener('click', async (e) => {
         console.error("Error searching invoice:", err);
         searchStatusMsg.textContent = "Error fetching invoice.";
         searchStatusMsg.classList.add("status-error");
+    } finally {
+        setButtonLoading(searchBtn, false);
     }
 });
 

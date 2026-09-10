@@ -2,11 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Varahi Invoices</title>
+
+    <!-- PWA / "Add to Home Screen" support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#D32721">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Varahi Invoices">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="img/icons/favicon.png">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- GLOBAL LOADING OVERLAY -->
+    <div id="global-loader" class="loader-overlay" style="display: none;" aria-live="polite" aria-busy="true">
+        <div class="ios-spinner" aria-hidden="true">
+            <div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div>
+        </div>
+        <p id="loader-text" class="loader-text">Signing in…</p>
+    </div>
 
     <!-- ACCESS DENIED SCREEN -->
     <div id="denied-screen" class="screen" style="display: none;">
@@ -229,5 +251,12 @@
     </div>
 
     <script type="module" src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(console.error);
+            });
+        }
+    </script>
 </body>
 </html>
