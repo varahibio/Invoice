@@ -46,13 +46,25 @@ const googleProvider = new GoogleAuthProvider();
    PDF FONT
    ========================================================= */
 
+/*
+ * Same Haffer VF font used by the website.
+ *
+ * This is the actual variable TTF hosted by the site owner.
+ */
 if (window.pdfMake && typeof window.pdfMake.addFonts === "function") {
     window.pdfMake.addFonts({
-        SourceSans3: {
-            normal: "https://cdn.jsdelivr.net/npm/source-sans@3.52.0/TTF/SourceSans3-Regular.ttf",
-            bold: "https://cdn.jsdelivr.net/npm/source-sans@3.52.0/TTF/SourceSans3-Bold.ttf",
-            italics: "https://cdn.jsdelivr.net/npm/source-sans@3.52.0/TTF/SourceSans3-It.ttf",
-            bolditalics: "https://cdn.jsdelivr.net/npm/source-sans@3.52.0/TTF/SourceSans3-BoldIt.ttf"
+        HafferVF: {
+            normal:
+                "https://cdn.prod.website-files.com/68a5787bba0829184628bd51/68a5df2de5b7c113032b4047_HafferStandardUprights-VF.ttf",
+
+            bold:
+                "https://cdn.prod.website-files.com/68a5787bba0829184628bd51/68a5df2de5b7c113032b4047_HafferStandardUprights-VF.ttf",
+
+            italics:
+                "https://cdn.prod.website-files.com/68a5787bba0829184628bd51/68a5df2de5b7c113032b4047_HafferStandardUprights-VF.ttf",
+
+            bolditalics:
+                "https://cdn.prod.website-files.com/68a5787bba0829184628bd51/68a5df2de5b7c113032b4047_HafferStandardUprights-VF.ttf"
         }
     });
 }
@@ -81,45 +93,101 @@ const INACTIVITY_LIMIT = 5 * 60 * 1000;
    DOM ELEMENTS
    ========================================================= */
 
-const loginScreen = document.getElementById("login-screen");
-const appScreen = document.getElementById("app-screen");
-const detailsScreen = document.getElementById("details-screen");
-const deniedScreen = document.getElementById("denied-screen");
+const loginScreen =
+    document.getElementById("login-screen");
 
-const deniedEmailText = document.getElementById("denied-email-text");
-const deniedBackBtn = document.getElementById("denied-back-btn");
-const userBadge = document.getElementById("user-badge");
+const appScreen =
+    document.getElementById("app-screen");
 
-const globalLoader = document.getElementById("global-loader");
-const loaderText = document.getElementById("loader-text");
+const detailsScreen =
+    document.getElementById("details-screen");
 
-const productSelect = document.getElementById("product-select");
-const batchInput = document.getElementById("product-batch");
-const mfgInput = document.getElementById("product-mfg");
-const discountInput = document.getElementById("discount-pct");
-const cartListUI = document.getElementById("cart-list");
+const deniedScreen =
+    document.getElementById("denied-screen");
 
-const dateInput = document.getElementById("invoice-date");
-const invoiceNumInput = document.getElementById("invoice-number");
-const saveCheckbox = document.getElementById("save-invoice-checkbox");
+const deniedEmailText =
+    document.getElementById("denied-email-text");
 
-const searchInput = document.getElementById("search-invoice-input");
-const searchBtn = document.getElementById("search-invoice-btn");
-const searchStatusMsg = document.getElementById("search-status-msg");
-const viewDetailsBtn = document.getElementById("view-details-btn");
-const detailsBackBtn = document.getElementById("details-back-btn");
+const deniedBackBtn =
+    document.getElementById("denied-back-btn");
 
-const detailInvNum = document.getElementById("detail-inv-num");
-const detailDate = document.getElementById("detail-date");
-const detailClientName = document.getElementById("detail-client-name");
-const detailClientAddress = document.getElementById("detail-client-address");
-const detailSavedBy = document.getElementById("detail-saved-by");
-const detailItemsList = document.getElementById("detail-items-list");
-const detailSubtotal = document.getElementById("detail-subtotal");
-const detailDiscount = document.getElementById("detail-discount");
-const detailTotal = document.getElementById("detail-total");
+const userBadge =
+    document.getElementById("user-badge");
 
-const generateBtn = document.getElementById("generate-btn");
+const globalLoader =
+    document.getElementById("global-loader");
+
+const loaderText =
+    document.getElementById("loader-text");
+
+const productSelect =
+    document.getElementById("product-select");
+
+const batchInput =
+    document.getElementById("product-batch");
+
+const mfgInput =
+    document.getElementById("product-mfg");
+
+const discountInput =
+    document.getElementById("discount-pct");
+
+const cartListUI =
+    document.getElementById("cart-list");
+
+const dateInput =
+    document.getElementById("invoice-date");
+
+const invoiceNumInput =
+    document.getElementById("invoice-number");
+
+const saveCheckbox =
+    document.getElementById("save-invoice-checkbox");
+
+const searchInput =
+    document.getElementById("search-invoice-input");
+
+const searchBtn =
+    document.getElementById("search-invoice-btn");
+
+const searchStatusMsg =
+    document.getElementById("search-status-msg");
+
+const viewDetailsBtn =
+    document.getElementById("view-details-btn");
+
+const detailsBackBtn =
+    document.getElementById("details-back-btn");
+
+const detailInvNum =
+    document.getElementById("detail-inv-num");
+
+const detailDate =
+    document.getElementById("detail-date");
+
+const detailClientName =
+    document.getElementById("detail-client-name");
+
+const detailClientAddress =
+    document.getElementById("detail-client-address");
+
+const detailSavedBy =
+    document.getElementById("detail-saved-by");
+
+const detailItemsList =
+    document.getElementById("detail-items-list");
+
+const detailSubtotal =
+    document.getElementById("detail-subtotal");
+
+const detailDiscount =
+    document.getElementById("detail-discount");
+
+const detailTotal =
+    document.getElementById("detail-total");
+
+const generateBtn =
+    document.getElementById("generate-btn");
 
 
 /* =========================================================
@@ -127,12 +195,16 @@ const generateBtn = document.getElementById("generate-btn");
    ========================================================= */
 
 function showLoader(text) {
-    loaderText.textContent = text || "Loading…";
-    globalLoader.style.display = "flex";
+    loaderText.textContent =
+        text || "Loading…";
+
+    globalLoader.style.display =
+        "flex";
 }
 
 function hideLoader() {
-    globalLoader.style.display = "none";
+    globalLoader.style.display =
+        "none";
 }
 
 let signInInProgress = false;
@@ -143,47 +215,60 @@ let signInInProgress = false;
    ========================================================= */
 
 const today = new Date();
-dateInput.value = today.toISOString().split("T")[0];
+
+dateInput.value =
+    today.toISOString().split("T")[0];
 
 
 /* =========================================================
    LOGO PRELOAD
    ========================================================= */
 
-const printLogoImg = document.getElementById("print-logo-img");
+const printLogoImg =
+    document.getElementById("print-logo-img");
 
-if (printLogoImg && !printLogoImg.complete) {
-    const preload = new Image();
-    preload.src = printLogoImg.src;
+if (
+    printLogoImg &&
+    !printLogoImg.complete
+) {
+    const preload =
+        new Image();
+
+    preload.src =
+        printLogoImg.src;
 }
 
 
 /*
  * Fetch the SVG once at startup.
- * The PDF receives the SVG directly instead of relying on browser
- * print rendering.
  */
-
 let invoiceLogoSvg = null;
 
-const invoiceLogoPromise = fetch("img/Logo.svg", {
-    cache: "force-cache"
-})
-    .then((response) => {
-        if (!response.ok) {
-            throw new Error(`Logo request failed: ${response.status}`);
-        }
+const invoiceLogoPromise =
+    fetch("img/Logo.svg", {
+        cache: "force-cache"
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(
+                    `Logo request failed: ${response.status}`
+                );
+            }
 
-        return response.text();
-    })
-    .then((svg) => {
-        invoiceLogoSvg = svg;
-        return svg;
-    })
-    .catch((error) => {
-        console.warn("Invoice PDF logo preload failed:", error);
-        return null;
-    });
+            return response.text();
+        })
+        .then((svg) => {
+            invoiceLogoSvg = svg;
+            return svg;
+        })
+        .catch((error) => {
+            console.warn(
+                "Invoice PDF logo preload failed:",
+                error
+            );
+
+            return null;
+        });
 
 
 /* =========================================================
@@ -191,18 +276,22 @@ const invoiceLogoPromise = fetch("img/Logo.svg", {
    ========================================================= */
 
 async function isUserAuthorized(email) {
+
     if (!email) {
         return false;
     }
 
     try {
-        const userRef = doc(
-            db,
-            "authorized_users",
-            email.toLowerCase()
-        );
 
-        const userSnap = await getDoc(userRef);
+        const userRef =
+            doc(
+                db,
+                "authorized_users",
+                email.toLowerCase()
+            );
+
+        const userSnap =
+            await getDoc(userRef);
 
         return (
             userSnap.exists() &&
@@ -210,7 +299,12 @@ async function isUserAuthorized(email) {
         );
 
     } catch (error) {
-        console.error("Auth check failed:", error);
+
+        console.error(
+            "Auth check failed:",
+            error
+        );
+
         return false;
     }
 }
@@ -220,95 +314,147 @@ async function isUserAuthorized(email) {
    AUTH STATE
    ========================================================= */
 
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(
+    auth,
+    async (user) => {
 
-    if (user) {
-
-        if (signInInProgress) {
-            showLoader("Checking your access…");
-        }
-
-        const authorized = await isUserAuthorized(user.email);
-
-        if (authorized) {
-
-            currentAuthenticatedUser = user;
+        if (user) {
 
             if (signInInProgress) {
-                showLoader("Loading your workspace…");
+                showLoader(
+                    "Checking your access…"
+                );
             }
 
-            deniedScreen.style.display = "none";
-            loginScreen.style.display = "none";
-            appScreen.style.display = "block";
+            const authorized =
+                await isUserAuthorized(
+                    user.email
+                );
 
-            userBadge.textContent =
-                `Signed in as: ${user.email}`;
+            if (authorized) {
 
-            await Promise.all([
-                loadProducts(),
-                loadInvoiceConfig()
-            ]);
+                currentAuthenticatedUser =
+                    user;
 
-            startInactivityTimer();
+                if (signInInProgress) {
+                    showLoader(
+                        "Loading your workspace…"
+                    );
+                }
 
-            signInInProgress = false;
-            hideLoader();
+                deniedScreen.style.display =
+                    "none";
+
+                loginScreen.style.display =
+                    "none";
+
+                appScreen.style.display =
+                    "block";
+
+                userBadge.textContent =
+                    `Signed in as: ${user.email}`;
+
+                await Promise.all([
+                    loadProducts(),
+                    loadInvoiceConfig()
+                ]);
+
+                startInactivityTimer();
+
+                signInInProgress =
+                    false;
+
+                hideLoader();
+
+            } else {
+
+                const rejectedEmail =
+                    user.email;
+
+                currentAuthenticatedUser =
+                    null;
+
+                await signOut(auth);
+
+                appScreen.style.display =
+                    "none";
+
+                detailsScreen.style.display =
+                    "none";
+
+                loginScreen.style.display =
+                    "none";
+
+                deniedEmailText.textContent =
+                    `Signed in as: ${rejectedEmail}`;
+
+                deniedScreen.style.display =
+                    "block";
+
+                clearTimeout(
+                    inactivityTimer
+                );
+
+                removeActivityListeners();
+
+                signInInProgress =
+                    false;
+
+                hideLoader();
+            }
 
         } else {
 
-            const rejectedEmail = user.email;
+            currentAuthenticatedUser =
+                null;
 
-            currentAuthenticatedUser = null;
+            if (
+                deniedScreen.style.display !==
+                "block"
+            ) {
+                loginScreen.style.display =
+                    "flex";
+            }
 
-            await signOut(auth);
+            appScreen.style.display =
+                "none";
 
-            appScreen.style.display = "none";
-            detailsScreen.style.display = "none";
-            loginScreen.style.display = "none";
+            detailsScreen.style.display =
+                "none";
 
-            deniedEmailText.textContent =
-                `Signed in as: ${rejectedEmail}`;
+            userBadge.textContent =
+                "";
 
-            deniedScreen.style.display = "block";
+            clearTimeout(
+                inactivityTimer
+            );
 
-            clearTimeout(inactivityTimer);
             removeActivityListeners();
 
-            signInInProgress = false;
+            signInInProgress =
+                false;
+
             hideLoader();
         }
-
-    } else {
-
-        currentAuthenticatedUser = null;
-
-        if (deniedScreen.style.display !== "block") {
-            loginScreen.style.display = "flex";
-        }
-
-        appScreen.style.display = "none";
-        detailsScreen.style.display = "none";
-
-        userBadge.textContent = "";
-
-        clearTimeout(inactivityTimer);
-        removeActivityListeners();
-
-        signInInProgress = false;
-        hideLoader();
     }
-});
+);
 
 
 /* =========================================================
    DENIED SCREEN
    ========================================================= */
 
-deniedBackBtn.addEventListener("click", () => {
-    deniedScreen.style.display = "none";
-    loginScreen.style.display = "flex";
-});
+deniedBackBtn.addEventListener(
+    "click",
+    () => {
+
+        deniedScreen.style.display =
+            "none";
+
+        loginScreen.style.display =
+            "flex";
+    }
+);
 
 
 /* =========================================================
@@ -317,11 +463,14 @@ deniedBackBtn.addEventListener("click", () => {
 
 function resetInactivityTimer() {
 
-    clearTimeout(inactivityTimer);
+    clearTimeout(
+        inactivityTimer
+    );
 
-    inactivityTimer = setTimeout(() => {
-        signOut(auth);
-    }, INACTIVITY_LIMIT);
+    inactivityTimer =
+        setTimeout(() => {
+            signOut(auth);
+        }, INACTIVITY_LIMIT);
 }
 
 function setupActivityListeners() {
@@ -381,7 +530,9 @@ function removeActivityListeners() {
 }
 
 function startInactivityTimer() {
+
     setupActivityListeners();
+
     resetInactivityTimer();
 }
 
@@ -392,38 +543,54 @@ function startInactivityTimer() {
 
 document
     .getElementById("google-login-btn")
-    .addEventListener("click", (e) => {
+    .addEventListener(
+        "click",
+        (e) => {
 
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-        signInInProgress = true;
+            signInInProgress =
+                true;
 
-        showLoader("Signing in…");
+            showLoader(
+                "Signing in…"
+            );
 
-        signInWithPopup(auth, googleProvider)
-            .then(() => {
+            signInWithPopup(
+                auth,
+                googleProvider
+            )
+                .then(() => {
 
-                document.getElementById(
-                    "error-msg"
-                ).style.display = "none";
+                    document
+                        .getElementById(
+                            "error-msg"
+                        )
+                        .style.display =
+                        "none";
+                })
+                .catch((error) => {
 
-            })
-            .catch((error) => {
+                    signInInProgress =
+                        false;
 
-                signInInProgress = false;
-                hideLoader();
+                    hideLoader();
 
-                const errorMsg =
-                    document.getElementById("error-msg");
+                    const errorMsg =
+                        document.getElementById(
+                            "error-msg"
+                        );
 
-                errorMsg.style.display = "block";
+                    errorMsg.style.display =
+                        "block";
 
-                errorMsg.textContent =
-                    error.message ||
-                    "Google sign-in failed.";
-            });
-    });
+                    errorMsg.textContent =
+                        error.message ||
+                        "Google sign-in failed.";
+                });
+        }
+    );
 
 
 /* =========================================================
@@ -432,41 +599,58 @@ document
 
 document
     .getElementById("login-btn")
-    .addEventListener("click", (e) => {
+    .addEventListener(
+        "click",
+        (e) => {
 
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-        signInInProgress = true;
+            signInInProgress =
+                true;
 
-        showLoader("Signing in…");
+            showLoader(
+                "Signing in…"
+            );
 
-        signInWithEmailAndPassword(
-            auth,
-            document.getElementById("email").value,
-            document.getElementById("password").value
-        )
-            .then(() => {
+            signInWithEmailAndPassword(
+                auth,
+                document
+                    .getElementById("email")
+                    .value,
+                document
+                    .getElementById("password")
+                    .value
+            )
+                .then(() => {
 
-                document.getElementById(
-                    "error-msg"
-                ).style.display = "none";
+                    document
+                        .getElementById(
+                            "error-msg"
+                        )
+                        .style.display =
+                        "none";
+                })
+                .catch(() => {
 
-            })
-            .catch(() => {
+                    signInInProgress =
+                        false;
 
-                signInInProgress = false;
-                hideLoader();
+                    hideLoader();
 
-                const errorMsg =
-                    document.getElementById("error-msg");
+                    const errorMsg =
+                        document.getElementById(
+                            "error-msg"
+                        );
 
-                errorMsg.style.display = "block";
+                    errorMsg.style.display =
+                        "block";
 
-                errorMsg.textContent =
-                    "Incorrect email or password.";
-            });
-    });
+                    errorMsg.textContent =
+                        "Incorrect email or password.";
+                });
+        }
+    );
 
 
 /* =========================================================
@@ -475,15 +659,23 @@ document
 
 document
     .getElementById("logout-btn")
-    .addEventListener("click", (e) => {
+    .addEventListener(
+        "click",
+        (e) => {
 
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-        showLoader("Signing out…");
+            showLoader(
+                "Signing out…"
+            );
 
-        signOut(auth).finally(hideLoader);
-    });
+            signOut(auth)
+                .finally(
+                    hideLoader
+                );
+        }
+    );
 
 
 /* =========================================================
@@ -495,20 +687,31 @@ async function loadInvoiceConfig() {
     try {
 
         const counterRef =
-            doc(db, "config", "invoiceCounter");
+            doc(
+                db,
+                "config",
+                "invoiceCounter"
+            );
 
         const docSnap =
-            await getDoc(counterRef);
+            await getDoc(
+                counterRef
+            );
 
-        let nextNum = 1;
+        let nextNum =
+            1;
 
         if (docSnap.exists()) {
+
             nextNum =
-                docSnap.data().lastNumber + 1;
+                docSnap.data().lastNumber +
+                1;
         }
 
         invoiceNumInput.value =
-            "INV" + String(nextNum).padStart(4, "0");
+            "INV" +
+            String(nextNum)
+                .padStart(4, "0");
 
     } catch (error) {
 
@@ -532,30 +735,45 @@ async function loadProducts() {
     try {
 
         const querySnapshot =
-            await getDocs(collection(db, "products"));
+            await getDocs(
+                collection(
+                    db,
+                    "products"
+                )
+            );
 
         productSelect.innerHTML =
             '<option value="" disabled selected>Select a Product...</option>';
 
-        querySnapshot.forEach((productDoc) => {
+        querySnapshot.forEach(
+            (productDoc) => {
 
-            const product = productDoc.data();
+                const product =
+                    productDoc.data();
 
-            const option =
-                document.createElement("option");
+                const option =
+                    document.createElement(
+                        "option"
+                    );
 
-            option.value = JSON.stringify({
-                id: productDoc.id,
-                name: product.name,
-                rate: product.rate,
-                category: product.category || ""
-            });
+                option.value =
+                    JSON.stringify({
+                        id: productDoc.id,
+                        name: product.name,
+                        rate: product.rate,
+                        category:
+                            product.category ||
+                            ""
+                    });
 
-            option.textContent =
-                `${product.name} - ₹${product.rate}`;
+                option.textContent =
+                    `${product.name} - ₹${product.rate}`;
 
-            productSelect.appendChild(option);
-        });
+                productSelect.appendChild(
+                    option
+                );
+            }
+        );
 
     } catch (error) {
 
@@ -592,71 +810,94 @@ function formatINR(number) {
 
 document
     .getElementById("add-item-btn")
-    .addEventListener("click", (e) => {
+    .addEventListener(
+        "click",
+        (e) => {
 
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-        if (!productSelect.value) {
+            if (!productSelect.value) {
 
-            alert(
-                "Please select a product first."
-            );
+                alert(
+                    "Please select a product first."
+                );
 
-            return;
+                return;
+            }
+
+            const productData =
+                JSON.parse(
+                    productSelect.value
+                );
+
+            const qty =
+                parseInt(
+                    document
+                        .getElementById(
+                            "product-qty"
+                        )
+                        .value
+                );
+
+            const batch =
+                batchInput.value.trim() ||
+                "As Per Pack";
+
+            const mfg =
+                mfgInput.value.trim() ||
+                "As Per Pack";
+
+            if (
+                qty < 1 ||
+                isNaN(qty)
+            ) {
+                return;
+            }
+
+            const existingItem =
+                cart.find(
+                    item =>
+                        item.id ===
+                            productData.id &&
+                        item.batch ===
+                            batch
+                );
+
+            if (existingItem) {
+
+                existingItem.qty +=
+                    qty;
+
+            } else {
+
+                cart.push({
+                    ...productData,
+                    qty,
+                    batch,
+                    mfg
+                });
+            }
+
+            productSelect.value =
+                "";
+
+            batchInput.value =
+                "";
+
+            mfgInput.value =
+                "";
+
+            document
+                .getElementById(
+                    "product-qty"
+                )
+                .value =
+                "1";
+
+            updateCartUI();
         }
-
-        const productData =
-            JSON.parse(productSelect.value);
-
-        const qty =
-            parseInt(
-                document.getElementById("product-qty").value
-            );
-
-        const batch =
-            batchInput.value.trim() ||
-            "As Per Pack";
-
-        const mfg =
-            mfgInput.value.trim() ||
-            "As Per Pack";
-
-        if (qty < 1 || isNaN(qty)) {
-            return;
-        }
-
-        const existingItem =
-            cart.find(
-                item =>
-                    item.id === productData.id &&
-                    item.batch === batch
-            );
-
-        if (existingItem) {
-
-            existingItem.qty += qty;
-
-        } else {
-
-            cart.push({
-                ...productData,
-                qty,
-                batch,
-                mfg
-            });
-        }
-
-        productSelect.value = "";
-        batchInput.value = "";
-        mfgInput.value = "";
-
-        document.getElementById(
-            "product-qty"
-        ).value = "1";
-
-        updateCartUI();
-    });
+    );
 
 
 /* =========================================================
@@ -665,9 +906,11 @@ document
 
 function updateCartUI() {
 
-    cartListUI.innerHTML = "";
+    cartListUI.innerHTML =
+        "";
 
-    let subtotal = 0;
+    let subtotal =
+        0;
 
     if (cart.length === 0) {
 
@@ -675,60 +918,84 @@ function updateCartUI() {
             '<p style="color: #777; font-size: 14px; margin: 0;">Cart is empty.</p>';
     }
 
-    cart.forEach((item, index) => {
+    cart.forEach(
+        (item, index) => {
 
-        const itemTotal =
-            item.rate * item.qty;
+            const itemTotal =
+                item.rate *
+                item.qty;
 
-        subtotal += itemTotal;
+            subtotal +=
+                itemTotal;
 
-        const li =
-            document.createElement("div");
+            const li =
+                document.createElement(
+                    "div"
+                );
 
-        li.className = "cart-item";
+            li.className =
+                "cart-item";
 
-        li.innerHTML = `
-            <div class="cart-item-details">
-                <span class="cart-item-title">${item.name}</span>
-                <span class="cart-item-math">
-                    ${item.qty} x ${formatINR(item.rate)}
-                    = ${formatINR(itemTotal)}
-                    (Batch: ${item.batch})
-                </span>
-            </div>
+            li.innerHTML = `
+                <div class="cart-item-details">
+                    <span class="cart-item-title">${item.name}</span>
+                    <span class="cart-item-math">
+                        ${item.qty} x ${formatINR(item.rate)}
+                        = ${formatINR(itemTotal)}
+                        (Batch: ${item.batch})
+                    </span>
+                </div>
 
-            <button
-                class="remove-btn"
-                type="button"
-                onclick="removeItem(${index})"
-            >&times;</button>
-        `;
+                <button
+                    class="remove-btn"
+                    type="button"
+                    onclick="removeItem(${index})"
+                >&times;</button>
+            `;
 
-        cartListUI.appendChild(li);
-    });
+            cartListUI.appendChild(
+                li
+            );
+        }
+    );
 
     const discountPct =
-        parseFloat(discountInput.value) || 0;
+        parseFloat(
+            discountInput.value
+        ) || 0;
 
     const discountAmount =
-        subtotal * (discountPct / 100);
+        subtotal *
+        (discountPct / 100);
 
     const finalTotal =
-        subtotal - discountAmount;
+        subtotal -
+        discountAmount;
 
     document.getElementById(
         "cart-subtotal"
-    ).textContent = formatINR(subtotal);
+    ).textContent =
+        formatINR(subtotal);
 
     document.getElementById(
         "cart-discount"
     ).textContent =
-        `- ${formatINR(discountAmount)}`;
+        `- ${formatINR(
+            discountAmount
+        )}`;
 
     document.getElementById(
         "cart-total"
     ).textContent =
-        `Total: ${formatINR(finalTotal)}`;
+        `Total: ${formatINR(
+            finalTotal
+        )}`;
+
+    /*
+     * Every cart change invalidates and rebuilds
+     * the PDF cache in the background.
+     */
+    scheduleInvoicePdfPrebuild();
 }
 
 
@@ -749,31 +1016,40 @@ function setButtonLoading(
     if (loading) {
 
         if (
-            btn.dataset.originalText === undefined
+            btn.dataset.originalText ===
+            undefined
         ) {
             btn.dataset.originalText =
                 btn.textContent;
         }
 
         btn.textContent =
-            loadingText || "Please wait…";
+            loadingText ||
+            "Please wait…";
 
-        btn.disabled = true;
+        btn.disabled =
+            true;
 
-        btn.classList.add("is-loading");
+        btn.classList.add(
+            "is-loading"
+        );
 
     } else {
 
         if (
-            btn.dataset.originalText !== undefined
+            btn.dataset.originalText !==
+            undefined
         ) {
             btn.textContent =
                 btn.dataset.originalText;
         }
 
-        btn.disabled = false;
+        btn.disabled =
+            false;
 
-        btn.classList.remove("is-loading");
+        btn.classList.remove(
+            "is-loading"
+        );
     }
 }
 
@@ -784,12 +1060,16 @@ discountInput.addEventListener(
 );
 
 
-window.removeItem = function(index) {
+window.removeItem =
+    function(index) {
 
-    cart.splice(index, 1);
+        cart.splice(
+            index,
+            1
+        );
 
-    updateCartUI();
-};
+        updateCartUI();
+    };
 
 
 /* =========================================================
@@ -809,50 +1089,83 @@ function buildInvoiceDocDefinition({
 }) {
 
     const currency =
-        (value) => formatINR(value);
+        (value) =>
+            formatINR(value);
 
 
     /*
-     * IMPORTANT:
+     * MRP IS INTENTIONALLY REMOVED.
      *
-     * MRP has deliberately been removed.
+     * RATE is the only rate field.
      *
-     * RATE is the MRP/rate supplied by the product.
-     *
-     * Description contains only:
+     * Description contains:
      * Product name
      * Batch
      * Manufacturing date
      */
 
-    const descriptionCell = (item) => {
+    const descriptionCell =
+        (item) => {
 
-        return {
-            stack: [
+            return {
 
-                {
-                    text: item.name || "",
-                    bold: true,
-                    fontSize: 10,
-                    color: "#333333",
-                    margin: [0, 0, 0, 3]
-                },
+                stack: [
 
-                {
-                    text:
-                        `Batch : ${item.batch || "As Per Pack"}\n` +
-                        `Mfg Dt. : ${item.mfg || "As Per Pack"}`,
+                    {
+                        text:
+                            item.name ||
+                            "",
 
-                    fontSize: 8.5,
-                    color: "#666666",
-                    lineHeight: 1.2
-                }
+                        bold:
+                            true,
 
-            ],
+                        fontSize:
+                            10,
 
-            margin: [0, 0, 0, 2]
+                        color:
+                            "#333333",
+
+                        margin:
+                            [
+                                0,
+                                0,
+                                0,
+                                3
+                            ]
+                    },
+
+                    {
+                        text:
+                            `Batch : ${
+                                item.batch ||
+                                "As Per Pack"
+                            }\n` +
+                            `Mfg Dt. : ${
+                                item.mfg ||
+                                "As Per Pack"
+                            }`,
+
+                        fontSize:
+                            8.5,
+
+                        color:
+                            "#666666",
+
+                        lineHeight:
+                            1.2
+                    }
+
+                ],
+
+                margin:
+                    [
+                        0,
+                        0,
+                        0,
+                        2
+                    ]
+            };
         };
-    };
 
 
     /* -----------------------------------------------------
@@ -862,81 +1175,165 @@ function buildInvoiceDocDefinition({
     const tableBody = [
 
         [
+
             {
-                text: "DESCRIPTION",
-                style: "tableHeader",
-                alignment: "left"
+                text:
+                    "DESCRIPTION",
+
+                style:
+                    "tableHeader",
+
+                alignment:
+                    "left"
             },
 
             {
-                text: "RATE",
-                style: "tableHeader",
-                alignment: "right"
+                text:
+                    "RATE",
+
+                style:
+                    "tableHeader",
+
+                alignment:
+                    "right"
             },
 
             {
-                text: "QTY",
-                style: "tableHeader",
-                alignment: "right"
+                text:
+                    "QTY",
+
+                style:
+                    "tableHeader",
+
+                alignment:
+                    "right"
             },
 
             {
-                text: "AMOUNT",
-                style: "tableHeader",
-                alignment: "right"
+                text:
+                    "AMOUNT",
+
+                style:
+                    "tableHeader",
+
+                alignment:
+                    "right"
             }
+
         ]
 
     ];
 
 
-    items.forEach((item) => {
+    items.forEach(
+        (item) => {
 
-        const itemTotal =
-            item.rate * item.qty;
+            const itemTotal =
+                item.rate *
+                item.qty;
 
-        tableBody.push([
+            tableBody.push([
 
-            descriptionCell(item),
+                descriptionCell(
+                    item
+                ),
 
-            {
-                text: currency(item.rate),
-                alignment: "right",
-                margin: [0, 2, 0, 2]
-            },
+                {
+                    text:
+                        currency(
+                            item.rate
+                        ),
 
-            {
-                text: String(item.qty),
-                alignment: "right",
-                margin: [0, 2, 0, 2]
-            },
+                    alignment:
+                        "right",
 
-            {
-                text: currency(itemTotal),
-                alignment: "right",
-                margin: [0, 2, 0, 2]
-            }
+                    noWrap:
+                        true,
 
-        ]);
-    });
+                    margin:
+                        [
+                            0,
+                            2,
+                            0,
+                            2
+                        ]
+                },
+
+                {
+                    text:
+                        String(
+                            item.qty
+                        ),
+
+                    alignment:
+                        "right",
+
+                    noWrap:
+                        true,
+
+                    margin:
+                        [
+                            0,
+                            2,
+                            0,
+                            2
+                        ]
+                },
+
+                {
+                    text:
+                        currency(
+                            itemTotal
+                        ),
+
+                    alignment:
+                        "right",
+
+                    noWrap:
+                        true,
+
+                    margin:
+                        [
+                            0,
+                            2,
+                            0,
+                            2
+                        ]
+                }
+
+            ]);
+        }
+    );
 
 
     /* -----------------------------------------------------
        LOGO
        ----------------------------------------------------- */
 
-    const logoNode = logoSvg
+    const logoNode =
+        logoSvg
 
-        ? {
-            svg: logoSvg,
-            fit: [36, 38],
-            alignment: "left"
-        }
+            ? {
+                svg:
+                    logoSvg,
 
-        : {
-            text: "",
-            width: 36
-        };
+                fit:
+                    [
+                        36,
+                        38
+                    ],
+
+                alignment:
+                    "left"
+            }
+
+            : {
+                text:
+                    "",
+
+                width:
+                    36
+            };
 
 
     /* -----------------------------------------------------
@@ -948,122 +1345,207 @@ function buildInvoiceDocDefinition({
         columns: [
 
             {
-                width: 44,
-                stack: [logoNode]
+                width:
+                    44,
+
+                stack:
+                    [
+                        logoNode
+                    ]
             },
 
             {
-                width: "*",
+                width:
+                    "*",
 
                 stack: [
 
                     {
-                        text: "Varahi Biologicals",
-                        style: "companyName"
+                        text:
+                            "Varahi Biologicals",
+
+                        style:
+                            "companyName"
                     },
 
                     {
                         text:
                             "Plot No 60/A, D.No.2-30/JV/90/A/BR/603, JV Colony, Gachibowli",
-                        style: "companyInfo"
+
+                        style:
+                            "companyInfo"
                     },
 
                     {
-                        text: "Hyderabad 500032",
-                        style: "companyInfo"
+                        text:
+                            "Hyderabad 500032",
+
+                        style:
+                            "companyInfo"
                     },
 
                     {
                         text:
                             "GSTIN : 36AUCPK7425M1ZB",
-                        style: "companyInfo"
-                    },
 
-                    {
-                        text: "8333979678",
-                        style: "companyInfo"
-                    },
-
-                    {
-                        text: "varahibio@gmail.com",
-                        style: "companyInfo"
-                    }
-
-                ],
-
-                margin: [4, 0, 8, 0]
-            },
-
-
-            /*
-             * WIDER COLUMN.
-             *
-             * This prevents:
-             *
-             * BILL OF SUPPLY
-             * DATE
-             * BALANCE DUE
-             *
-             * from wrapping.
-             */
-
-            {
-                width: 115,
-
-                alignment: "right",
-
-                stack: [
-
-                    {
-                        text: "BILL OF SUPPLY",
-                        style: "metaLabel",
-                        alignment: "right"
-                    },
-
-                    {
-                        text: invNum,
-                        style: "metaValue",
-                        alignment: "right"
-                    },
-
-                    {
-                        text: "DATE",
-                        style: "metaLabel",
-                        alignment: "right",
-                        margin: [0, 10, 0, 0]
-                    },
-
-                    {
-                        text: dateString,
-                        style: "metaValue",
-                        alignment: "right"
-                    },
-
-                    {
-                        text: "DUE",
-                        style: "metaLabel",
-                        alignment: "right",
-                        margin: [0, 10, 0, 0]
-                    },
-
-                    {
-                        text: "On Receipt",
-                        style: "metaValue",
-                        alignment: "right"
-                    },
-
-                    {
-                        text: "BALANCE DUE",
-                        style: "metaLabel",
-                        alignment: "right",
-                        margin: [0, 10, 0, 0]
+                        style:
+                            "companyInfo"
                     },
 
                     {
                         text:
-                            `INR ${finalTotal.toFixed(2)}`,
-                        style: "metaValueBold",
-                        alignment: "right"
+                            "8333979678",
+
+                        style:
+                            "companyInfo"
+                    },
+
+                    {
+                        text:
+                            "varahibio@gmail.com",
+
+                        style:
+                            "companyInfo"
+                    }
+
+                ],
+
+                margin:
+                    [
+                        4,
+                        0,
+                        8,
+                        0
+                    ]
+            },
+
+            /*
+             * Wide metadata column.
+             * Prevents BILL OF SUPPLY, DATE,
+             * and BALANCE DUE from wrapping.
+             */
+
+            {
+                width:
+                    145,
+
+                alignment:
+                    "right",
+
+                stack: [
+
+                    {
+                        text:
+                            "BILL OF SUPPLY",
+
+                        style:
+                            "metaLabel",
+
+                        alignment:
+                            "right"
+                    },
+
+                    {
+                        text:
+                            invNum,
+
+                        style:
+                            "metaValue",
+
+                        alignment:
+                            "right"
+                    },
+
+                    {
+                        text:
+                            "DATE",
+
+                        style:
+                            "metaLabel",
+
+                        alignment:
+                            "right",
+
+                        margin:
+                            [
+                                0,
+                                10,
+                                0,
+                                0
+                            ]
+                    },
+
+                    {
+                        text:
+                            dateString,
+
+                        style:
+                            "metaValue",
+
+                        alignment:
+                            "right"
+                    },
+
+                    {
+                        text:
+                            "DUE",
+
+                        style:
+                            "metaLabel",
+
+                        alignment:
+                            "right",
+
+                        margin:
+                            [
+                                0,
+                                10,
+                                0,
+                                0
+                            ]
+                    },
+
+                    {
+                        text:
+                            "On Receipt",
+
+                        style:
+                            "metaValue",
+
+                        alignment:
+                            "right"
+                    },
+
+                    {
+                        text:
+                            "BALANCE DUE",
+
+                        style:
+                            "metaLabel",
+
+                        alignment:
+                            "right",
+
+                        margin:
+                            [
+                                0,
+                                10,
+                                0,
+                                0
+                            ]
+                    },
+
+                    {
+                        text:
+                            `INR ${finalTotal.toFixed(
+                                2
+                            )}`,
+
+                        style:
+                            "metaValueBold",
+
+                        alignment:
+                            "right"
                     }
 
                 ]
@@ -1071,9 +1553,16 @@ function buildInvoiceDocDefinition({
 
         ],
 
-        columnGap: 8,
+        columnGap:
+            8,
 
-        margin: [0, 0, 0, 18]
+        margin:
+            [
+                0,
+                0,
+                0,
+                18
+            ]
     };
 
 
@@ -1086,23 +1575,39 @@ function buildInvoiceDocDefinition({
         stack: [
 
             {
-                text: "BILL TO",
-                style: "metaLabel"
+                text:
+                    "BILL TO",
+
+                style:
+                    "metaLabel"
             },
 
             {
-                text: clientName,
-                style: "billToName"
+                text:
+                    clientName,
+
+                style:
+                    "billToName"
             },
 
             {
-                text: clientAddress || "",
-                style: "billToAddress"
+                text:
+                    clientAddress ||
+                    "",
+
+                style:
+                    "billToAddress"
             }
 
         ],
 
-        margin: [0, 0, 0, 16]
+        margin:
+            [
+                0,
+                0,
+                0,
+                16
+            ]
     };
 
 
@@ -1115,130 +1620,195 @@ function buildInvoiceDocDefinition({
         columns: [
 
             {
-                width: "*",
-                text: ""
+                width:
+                    "*",
+
+                text:
+                    ""
             },
 
             {
-                width: 150,
+                width:
+                    150,
 
                 table: {
 
-                    widths: ["*", "auto"],
+                    widths:
+                        [
+                            "*",
+                            "auto"
+                        ],
 
                     body: [
 
                         [
 
                             {
-                                text: "SUBTOTAL",
-                                style: "totalLabel",
-                                border: [
-                                    false,
-                                    false,
-                                    false,
-                                    false
-                                ]
+                                text:
+                                    "SUBTOTAL",
+
+                                style:
+                                    "totalLabel",
+
+                                border:
+                                    [
+                                        false,
+                                        false,
+                                        false,
+                                        false
+                                    ]
                             },
 
                             {
-                                text: currency(subtotal),
-                                style: "totalValue",
-                                border: [
-                                    false,
-                                    false,
-                                    false,
-                                    false
-                                ]
+                                text:
+                                    currency(
+                                        subtotal
+                                    ),
+
+                                style:
+                                    "totalValue",
+
+                                border:
+                                    [
+                                        false,
+                                        false,
+                                        false,
+                                        false
+                                    ]
                             }
 
                         ],
-
 
                         ...(discountAmount > 0
 
                             ? [[
 
                                 {
-                                    text: "DISCOUNT",
-                                    style: "totalLabel",
-                                    border: [
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ]
+                                    text:
+                                        "DISCOUNT",
+
+                                    style:
+                                        "totalLabel",
+
+                                    border:
+                                        [
+                                            false,
+                                            false,
+                                            false,
+                                            false
+                                        ]
                                 },
 
                                 {
                                     text:
-                                        `- ${currency(discountAmount)}`,
-                                    style: "totalValue",
-                                    border: [
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ]
+                                        `- ${currency(
+                                            discountAmount
+                                        )}`,
+
+                                    style:
+                                        "totalValue",
+
+                                    border:
+                                        [
+                                            false,
+                                            false,
+                                            false,
+                                            false
+                                        ]
                                 }
 
                             ]]
 
                             : []),
 
-
                         [
 
                             {
-                                text: "TOTAL",
-                                style: "totalLabelStrong",
-                                border: [
-                                    false,
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                margin: [0, 8, 0, 0]
-                            },
+                                text:
+                                    "TOTAL",
 
-                            {
-                                text: currency(finalTotal),
-                                style: "totalValueStrong",
-                                border: [
-                                    false,
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                margin: [0, 8, 0, 0]
-                            }
+                                style:
+                                    "totalLabelStrong",
 
-                        ],
+                                border:
+                                    [
+                                        false,
+                                        true,
+                                        false,
+                                        false
+                                    ],
 
-
-                        [
-
-                            {
-                                text: "BALANCE DUE",
-                                style: "balanceLabel",
-                                border: [
-                                    false,
-                                    true,
-                                    false,
-                                    true
-                                ]
+                                margin:
+                                    [
+                                        0,
+                                        8,
+                                        0,
+                                        0
+                                    ]
                             },
 
                             {
                                 text:
-                                    `INR ${finalTotal.toFixed(2)}`,
-                                style: "balanceValue",
-                                border: [
-                                    false,
-                                    true,
-                                    false,
-                                    true
-                                ]
+                                    currency(
+                                        finalTotal
+                                    ),
+
+                                style:
+                                    "totalValueStrong",
+
+                                border:
+                                    [
+                                        false,
+                                        true,
+                                        false,
+                                        false
+                                    ],
+
+                                margin:
+                                    [
+                                        0,
+                                        8,
+                                        0,
+                                        0
+                                    ]
+                            }
+
+                        ],
+
+                        [
+
+                            {
+                                text:
+                                    "BALANCE DUE",
+
+                                style:
+                                    "balanceLabel",
+
+                                border:
+                                    [
+                                        false,
+                                        true,
+                                        false,
+                                        true
+                                    ]
+                            },
+
+                            {
+                                text:
+                                    `INR ${finalTotal.toFixed(
+                                        2
+                                    )}`,
+
+                                style:
+                                    "balanceValue",
+
+                                border:
+                                    [
+                                        false,
+                                        true,
+                                        false,
+                                        true
+                                    ]
                             }
 
                         ]
@@ -1248,33 +1818,51 @@ function buildInvoiceDocDefinition({
 
                 layout: {
 
-                    hLineWidth: (i, node) => {
+                    hLineWidth:
+                        (i, node) => {
 
-                        return (
-                            i === 0 ||
-                            i === node.table.body.length
-                        )
-                            ? 0
-                            : 0.6;
-                    },
+                            return (
+                                i === 0 ||
+                                i ===
+                                    node
+                                        .table
+                                        .body
+                                        .length
+                            )
+                                ? 0
+                                : 0.6;
+                        },
 
-                    vLineWidth: () => 0,
+                    vLineWidth:
+                        () => 0,
 
-                    hLineColor: () => "#DDDDDD",
+                    hLineColor:
+                        () =>
+                            "#DDDDDD",
 
-                    paddingLeft: () => 0,
+                    paddingLeft:
+                        () => 0,
 
-                    paddingRight: () => 0,
+                    paddingRight:
+                        () => 0,
 
-                    paddingTop: () => 4,
+                    paddingTop:
+                        () => 4,
 
-                    paddingBottom: () => 4
+                    paddingBottom:
+                        () => 4
                 }
             }
 
         ],
 
-        margin: [0, 6, 0, 0]
+        margin:
+            [
+                0,
+                6,
+                0,
+                0
+            ]
     };
 
 
@@ -1284,14 +1872,16 @@ function buildInvoiceDocDefinition({
 
     return {
 
-        pageSize: "A4",
+        pageSize:
+            "A4",
 
-        pageMargins: [
-            20,
-            20,
-            20,
-            20
-        ],
+        pageMargins:
+            [
+                20,
+                20,
+                20,
+                20
+            ],
 
         info: {
 
@@ -1305,33 +1895,28 @@ function buildInvoiceDocDefinition({
                 "Bill of Supply"
         },
 
-
         content: [
 
             header,
 
             billTo,
 
-
             {
                 table: {
 
-                    headerRows: 1,
+                    headerRows:
+                        1,
 
-                    /*
-                     * More room for RATE and AMOUNT.
-                     * This prevents values such as ₹1,760.00
-                     * from breaking onto separate lines.
-                     */
+                    widths:
+                        [
+                            "*",
+                            64,
+                            34,
+                            70
+                        ],
 
-                    widths: [
-                        "*",
-                        58,
-                        34,
-                        62
-                    ],
-
-                    body: tableBody
+                    body:
+                        tableBody
                 },
 
                 layout: {
@@ -1342,7 +1927,11 @@ function buildInvoiceDocDefinition({
                             return (
                                 i === 0 ||
                                 i === 1 ||
-                                i === node.table.body.length
+                                i ===
+                                    node
+                                        .table
+                                        .body
+                                        .length
                             )
                                 ? 0.8
                                 : 0;
@@ -1352,137 +1941,258 @@ function buildInvoiceDocDefinition({
                         () => 0,
 
                     hLineColor:
-                        () => "#333333",
+                        () =>
+                            "#333333",
 
                     paddingLeft:
-                        (i) => i === 0 ? 0 : 4,
+                        (i) =>
+                            i === 0
+                                ? 0
+                                : 4,
 
                     paddingRight:
-                        (i) => i === 3 ? 0 : 4,
+                        (i) =>
+                            i === 3
+                                ? 0
+                                : 4,
 
                     paddingTop:
-                        (i) => i === 0 ? 5 : 8,
+                        (i) =>
+                            i === 0
+                                ? 5
+                                : 8,
 
                     paddingBottom:
-                        (i) => i === 0 ? 5 : 8
+                        (i) =>
+                            i === 0
+                                ? 5
+                                : 8
                 }
             },
-
 
             totals
 
         ],
 
-
         defaultStyle: {
 
-            /*
-             * Source Sans 3 replaces Roboto.
-             */
+            font:
+                "HafferVF",
 
-            font: "SourceSans3",
+            fontSize:
+                9.5,
 
-            fontSize: 9.5,
-
-            color: "#333333"
+            color:
+                "#333333"
         },
-
 
         styles: {
 
             companyName: {
-                fontSize: 16,
-                bold: true,
-                margin: [0, 0, 0, 5]
+                fontSize:
+                    16,
+
+                bold:
+                    true,
+
+                margin:
+                    [
+                        0,
+                        0,
+                        0,
+                        5
+                    ]
             },
 
             companyInfo: {
-                fontSize: 8.5,
-                color: "#555555",
-                margin: [0, 1.5, 0, 0]
+                fontSize:
+                    8.5,
+
+                color:
+                    "#555555",
+
+                margin:
+                    [
+                        0,
+                        1.5,
+                        0,
+                        0
+                    ]
             },
 
             metaLabel: {
-                fontSize: 8,
-                bold: true,
-                color: "#555555",
-                margin: [0, 0, 0, 2],
-                noWrap: true
+                fontSize:
+                    8,
+
+                bold:
+                    true,
+
+                color:
+                    "#555555",
+
+                margin:
+                    [
+                        0,
+                        0,
+                        0,
+                        2
+                    ],
+
+                noWrap:
+                    true
             },
 
             metaValue: {
-                fontSize: 9,
-                color: "#333333",
-                noWrap: true
+                fontSize:
+                    9,
+
+                color:
+                    "#333333",
+
+                noWrap:
+                    true
             },
 
             metaValueBold: {
-                fontSize: 9,
-                bold: true,
-                color: "#333333",
-                noWrap: true
+                fontSize:
+                    9,
+
+                bold:
+                    true,
+
+                color:
+                    "#333333",
+
+                noWrap:
+                    true
             },
 
             billToName: {
-                fontSize: 11,
-                bold: true,
-                margin: [0, 3, 0, 2]
+                fontSize:
+                    11,
+
+                bold:
+                    true,
+
+                margin:
+                    [
+                        0,
+                        3,
+                        0,
+                        2
+                    ]
             },
 
             billToAddress: {
-                fontSize: 9.5,
-                color: "#555555",
-                lineHeight: 1.2
+                fontSize:
+                    9.5,
+
+                color:
+                    "#555555",
+
+                lineHeight:
+                    1.2
             },
 
             tableHeader: {
-                fontSize: 8,
-                bold: true,
-                color: "#555555",
-                noWrap: true
+                fontSize:
+                    8,
+
+                bold:
+                    true,
+
+                color:
+                    "#555555",
+
+                noWrap:
+                    true
             },
 
             totalLabel: {
-                fontSize: 8.5,
-                color: "#555555",
-                noWrap: true
+                fontSize:
+                    8.5,
+
+                color:
+                    "#555555",
+
+                noWrap:
+                    true
             },
 
             totalValue: {
-                fontSize: 8.5,
-                color: "#333333",
-                alignment: "right",
-                noWrap: true
+                fontSize:
+                    8.5,
+
+                color:
+                    "#333333",
+
+                alignment:
+                    "right",
+
+                noWrap:
+                    true
             },
 
             totalLabelStrong: {
-                fontSize: 9,
-                bold: true,
-                color: "#333333",
-                noWrap: true
+                fontSize:
+                    9,
+
+                bold:
+                    true,
+
+                color:
+                    "#333333",
+
+                noWrap:
+                    true
             },
 
             totalValueStrong: {
-                fontSize: 9,
-                bold: true,
-                color: "#333333",
-                alignment: "right",
-                noWrap: true
+                fontSize:
+                    9,
+
+                bold:
+                    true,
+
+                color:
+                    "#333333",
+
+                alignment:
+                    "right",
+
+                noWrap:
+                    true
             },
 
             balanceLabel: {
-                fontSize: 9,
-                bold: true,
-                color: "#333333",
-                noWrap: true
+                fontSize:
+                    9,
+
+                bold:
+                    true,
+
+                color:
+                    "#333333",
+
+                noWrap:
+                    true
             },
 
             balanceValue: {
-                fontSize: 10,
-                bold: true,
-                color: "#333333",
-                alignment: "right",
-                noWrap: true
+                fontSize:
+                    10,
+
+                bold:
+                    true,
+
+                color:
+                    "#333333",
+
+                alignment:
+                    "right",
+
+                noWrap:
+                    true
             }
         }
     };
@@ -1490,8 +2200,21 @@ function buildInvoiceDocDefinition({
 
 
 /* =========================================================
-   IOS DETECTION
+   PDF CACHE + IOS SHARE
    ========================================================= */
+
+let invoicePdfCacheKey =
+    null;
+
+let invoicePdfCacheFile =
+    null;
+
+let invoicePdfBuildPromise =
+    null;
+
+let invoicePdfPrebuildTimer =
+    null;
+
 
 function isIOSBrowser() {
 
@@ -1501,94 +2224,501 @@ function isIOSBrowser() {
         ) ||
 
         (
-            navigator.platform === "MacIntel" &&
-            navigator.maxTouchPoints > 1
+            navigator.platform ===
+                "MacIntel" &&
+
+            navigator.maxTouchPoints >
+                1
         )
     );
 }
 
 
-/* =========================================================
-   IOS NATIVE PDF SHARE
-   ========================================================= */
+/*
+ * Read the current invoice form/cart state.
+ */
+function getInvoicePdfInputs() {
 
-async function shareInvoicePdf(
-    blob,
-    invNum
-) {
+    const clientName =
+        document
+            .getElementById(
+                "client-name"
+            )
+            .value
+            .trim() ||
+        "Cash Customer";
 
-    if (!blob) {
-        return false;
-    }
+    const clientAddress =
+        document
+            .getElementById(
+                "client-address"
+            )
+            .value
+            .trim();
 
-    const filename =
-        `${invNum}.pdf`;
+    const invNum =
+        invoiceNumInput.value.trim() ||
+        "INV0001";
 
-    const file =
-        new File(
-            [blob],
-            filename,
+    const rawDate =
+        dateInput.value;
+
+    const parsedDate =
+        new Date(
+            `${rawDate}T00:00:00`
+        );
+
+    const dateString =
+        parsedDate.toLocaleDateString(
+            "en-US",
             {
-                type: "application/pdf"
+                month:
+                    "short",
+
+                day:
+                    "numeric",
+
+                year:
+                    "numeric"
             }
         );
 
+    let subtotal =
+        0;
+
+    cart.forEach(
+        (item) => {
+
+            subtotal +=
+                item.rate *
+                item.qty;
+        }
+    );
+
+    const discountPct =
+        parseFloat(
+            discountInput.value
+        ) || 0;
+
+    const discountAmount =
+        subtotal *
+        (discountPct / 100);
+
+    const finalTotal =
+        subtotal -
+        discountAmount;
+
+    return {
+
+        invNum,
+
+        dateString,
+
+        clientName,
+
+        clientAddress,
+
+        subtotal,
+
+        discountAmount,
+
+        finalTotal,
+
+        items:
+            cart.map(
+                (item) => ({
+
+                    id:
+                        item.id ||
+                        "",
+
+                    name:
+                        item.name ||
+                        "",
+
+                    rate:
+                        Number(
+                            item.rate
+                        ) || 0,
+
+                    qty:
+                        Number(
+                            item.qty
+                        ) || 0,
+
+                    batch:
+                        item.batch ||
+                        "As Per Pack",
+
+                    mfg:
+                        item.mfg ||
+                        "As Per Pack"
+                })
+            )
+    };
+}
+
+
+function getInvoicePdfCacheKey(
+    data
+) {
+
+    return JSON.stringify({
+
+        invNum:
+            data.invNum,
+
+        dateString:
+            data.dateString,
+
+        clientName:
+            data.clientName,
+
+        clientAddress:
+            data.clientAddress,
+
+        subtotal:
+            data.subtotal,
+
+        discountAmount:
+            data.discountAmount,
+
+        finalTotal:
+            data.finalTotal,
+
+        items:
+            data.items
+    });
+}
+
+
+/*
+ * Build a real File object.
+ *
+ * This happens in the background before the user taps Generate.
+ */
+async function buildInvoicePdfFile(
+    data
+) {
+
+    if (!window.pdfMake) {
+
+        throw new Error(
+            "PDF engine did not load. Please refresh the page and try again."
+        );
+    }
+
+    if (!invoiceLogoSvg) {
+        await invoiceLogoPromise;
+    }
+
+    const docDefinition =
+        buildInvoiceDocDefinition({
+
+            invNum:
+                data.invNum,
+
+            dateString:
+                data.dateString,
+
+            clientName:
+                data.clientName,
+
+            clientAddress:
+                data.clientAddress,
+
+            items:
+                data.items,
+
+            subtotal:
+                data.subtotal,
+
+            discountAmount:
+                data.discountAmount,
+
+            finalTotal:
+                data.finalTotal,
+
+            logoSvg:
+                invoiceLogoSvg
+        });
+
+    const pdf =
+        window.pdfMake.createPdf(
+            docDefinition
+        );
+
+    const blob =
+        await pdf.getBlob();
+
+    if (!blob) {
+
+        throw new Error(
+            "PDF generation returned no file."
+        );
+    }
+
+    return new File(
+        [
+            blob
+        ],
+
+        `${data.invNum}.pdf`,
+
+        {
+            type:
+                "application/pdf"
+        }
+    );
+}
+
+
+/*
+ * Debounce PDF rebuilding while the user is typing.
+ */
+function scheduleInvoicePdfPrebuild() {
+
+    clearTimeout(
+        invoicePdfPrebuildTimer
+    );
+
+    invoicePdfPrebuildTimer =
+        setTimeout(
+            () => {
+
+                prebuildInvoicePdf()
+                    .catch(
+                        (error) => {
+
+                            console.warn(
+                                "Invoice PDF prebuild failed:",
+                                error
+                            );
+                        }
+                    );
+
+            },
+            350
+        );
+}
+
+
+async function prebuildInvoicePdf() {
+
+    if (
+        !window.pdfMake ||
+        cart.length === 0
+    ) {
+
+        invoicePdfCacheKey =
+            null;
+
+        invoicePdfCacheFile =
+            null;
+
+        invoicePdfBuildPromise =
+            null;
+
+        return null;
+    }
+
+    const data =
+        getInvoicePdfInputs();
+
+    const key =
+        getInvoicePdfCacheKey(
+            data
+        );
+
+    if (
+        key ===
+            invoicePdfCacheKey &&
+        invoicePdfCacheFile
+    ) {
+
+        return invoicePdfCacheFile;
+    }
+
+    if (
+        invoicePdfBuildPromise &&
+        invoicePdfBuildPromise.key ===
+            key
+    ) {
+
+        return invoicePdfBuildPromise;
+    }
+
+    invoicePdfCacheKey =
+        null;
+
+    invoicePdfCacheFile =
+        null;
+
+    const promise =
+        buildInvoicePdfFile(
+            data
+        );
 
     /*
-     * iOS Safari supports Web Share with files.
-     *
-     * This is preferable to opening a blob PDF because the native
-     * Share Sheet can expose "Save to Files" directly and the File
-     * object carries the invoice filename.
+     * Promises are objects, so this lets us identify
+     * whether a currently-running build belongs to
+     * the latest invoice state.
      */
+    promise.key =
+        key;
+
+    invoicePdfBuildPromise =
+        promise;
+
+    try {
+
+        const file =
+            await promise;
+
+        const currentData =
+            getInvoicePdfInputs();
+
+        const currentKey =
+            getInvoicePdfCacheKey(
+                currentData
+            );
+
+        /*
+         * Ignore a PDF that became stale while it
+         * was being generated.
+         */
+        if (
+            currentKey ===
+            key
+        ) {
+
+            invoicePdfCacheKey =
+                key;
+
+            invoicePdfCacheFile =
+                file;
+
+            invoicePdfBuildPromise =
+                null;
+
+            return file;
+        }
+
+        invoicePdfBuildPromise =
+            null;
+
+        scheduleInvoicePdfPrebuild();
+
+        return null;
+
+    } catch (error) {
+
+        invoicePdfBuildPromise =
+            null;
+
+        throw error;
+    }
+}
+
+
+/*
+ * CRITICAL iOS FUNCTION.
+ *
+ * This MUST be called directly from the Generate
+ * button's click event.
+ *
+ * There is deliberately NO await before
+ * navigator.share().
+ *
+ * The PDF has already been generated.
+ */
+function shareCachedInvoicePdfFromGesture() {
+
+    if (!isIOSBrowser()) {
+        return false;
+    }
 
     if (
         !navigator.share ||
-        !navigator.canShare ||
+        !navigator.canShare
+    ) {
+        return false;
+    }
+
+    const data =
+        getInvoicePdfInputs();
+
+    const key =
+        getInvoicePdfCacheKey(
+            data
+        );
+
+    const file =
+        invoicePdfCacheFile;
+
+    /*
+     * If the current invoice isn't already
+     * prepared, we cannot wait here because
+     * waiting would lose iOS's user activation.
+     */
+    if (
+        !file ||
+        invoicePdfCacheKey !==
+            key
+    ) {
+        return false;
+    }
+
+    if (
         !navigator.canShare({
-            files: [file]
+            files: [
+                file
+            ]
         })
     ) {
         return false;
     }
 
+    /*
+     * IMPORTANT:
+     *
+     * Do not await this call.
+     *
+     * This is executed directly from the
+     * user's Generate Invoice tap.
+     */
+    navigator.share({
 
-    try {
+        files: [
+            file
+        ],
 
-        await navigator.share({
+        title:
+            file.name
 
-            files: [file],
+    }).catch(
+        (error) => {
 
-            title: filename
-        });
+            if (
+                error &&
+                error.name !==
+                    "AbortError"
+            ) {
 
-        return true;
-
-    } catch (error) {
-
-        /*
-         * If the user cancels or Safari rejects the share request,
-         * the caller falls back to the working PDF-tab behaviour.
-         */
-
-        if (
-            error &&
-            error.name !== "AbortError"
-        ) {
-
-            console.warn(
-                "Native PDF share unavailable:",
-                error
-            );
+                console.warn(
+                    "Native PDF share failed:",
+                    error
+                );
+            }
         }
+    );
 
-        return false;
-    }
+    return true;
 }
 
 
 /* =========================================================
-   PDF GENERATION
+   DESKTOP / ANDROID PDF FALLBACK
    ========================================================= */
 
 async function generateInvoicePdf(
@@ -1604,71 +2734,57 @@ async function generateInvoicePdf(
         );
     }
 
-
     const pdf =
         window.pdfMake.createPdf(
             docDefinition
         );
 
-
     /*
-     * iOS:
+     * Safari does not reliably support
+     * pdfmake.open().
      *
-     * Generate the Blob and send it to the native Share Sheet.
-     *
-     * This is the new preferred path.
+     * Generate the PDF Blob and navigate
+     * the already-opened fallback tab to it.
      */
+    const blob =
+        await pdf.getBlob();
 
-    if (isIOSBrowser()) {
+    if (!blob) {
 
-        const blob =
-            await pdf.getBlob();
-
-        const shared =
-            await shareInvoicePdf(
-                blob,
-                invNum
-            );
-
-
-        if (shared) {
-
-            if (
-                targetWindow &&
-                !targetWindow.closed
-            ) {
-
-                try {
-                    targetWindow.close();
-                } catch (_) {}
-            }
-
-            return;
-        }
+        throw new Error(
+            "PDF generation returned no file."
+        );
     }
 
-
-    /*
-     * Desktop / Android / fallback:
-     *
-     * Open the generated PDF in the already-authorized tab.
-     */
+    const blobUrl =
+        URL.createObjectURL(
+            blob
+        );
 
     if (
         targetWindow &&
         !targetWindow.closed
     ) {
 
-        await pdf.open(
-            targetWindow
-        );
+        targetWindow.location.href =
+            blobUrl;
 
     } else {
 
-        await pdf.open(
-            window
-        );
+        window.location.href =
+            blobUrl;
     }
+
+    setTimeout(
+        () => {
+
+            URL.revokeObjectURL(
+                blobUrl
+            );
+
+        },
+        60000
+    );
 }
 
 
@@ -1683,8 +2799,9 @@ generateBtn.addEventListener(
         e.preventDefault();
         e.stopPropagation();
 
-
-        if (cart.length === 0) {
+        if (
+            cart.length === 0
+        ) {
 
             alert(
                 "Cannot generate an empty invoice. Add items to the bill."
@@ -1692,6 +2809,25 @@ generateBtn.addEventListener(
 
             return;
         }
+
+
+        /*
+         * =====================================================
+         * CRITICAL IOS STEP
+         * =====================================================
+         *
+         * This is the FIRST async-sensitive action.
+         *
+         * The PDF has already been generated in the background.
+         *
+         * navigator.share() therefore receives the File
+         * while this click still has user activation.
+         */
+        const ios =
+            isIOSBrowser();
+
+        const iosShareStarted =
+            shareCachedInvoicePdfFromGesture();
 
 
         setButtonLoading(
@@ -1702,159 +2838,96 @@ generateBtn.addEventListener(
 
 
         /*
-         * Open a window immediately while the button click is still
-         * a trusted user gesture.
+         * If iOS did not have the PDF ready yet,
+         * do NOT open about:blank.
          *
-         * This remains the fallback for browsers that cannot use
-         * the native Share Sheet.
+         * Waiting here cannot preserve the current
+         * tap activation, so prepare the cache and
+         * ask for another tap.
          */
-
-        const pdfWindow =
-            window.open(
-                "",
-                "_blank"
-            );
-
-
-        if (pdfWindow) {
+        if (
+            ios &&
+            !iosShareStarted
+        ) {
 
             try {
 
-                pdfWindow.document.title =
-                    "Preparing invoice…";
-
-                pdfWindow.document.body.innerHTML = `
-                    <div style="
-                        font-family:
-                            -apple-system,
-                            BlinkMacSystemFont,
-                            'Segoe UI',
-                            sans-serif;
-                        padding:32px;
-                        text-align:center;
-                        color:#555;
-                    ">
-                        Preparing invoice…
-                    </div>
-                `;
+                await prebuildInvoicePdf();
 
             } catch (error) {
 
-                console.warn(
-                    "Could not write PDF preparation page:",
+                console.error(
+                    "Invoice PDF prebuild failed:",
                     error
                 );
+            }
+
+            setButtonLoading(
+                generateBtn,
+                false
+            );
+
+            alert(
+                "The invoice is still preparing. Please tap Generate Invoice again in a moment."
+            );
+
+            return;
+        }
+
+
+        /*
+         * =====================================================
+         * NON-IOS FALLBACK
+         * =====================================================
+         *
+         * Only desktop/Android gets an opened destination tab.
+         *
+         * iOS NEVER gets about:blank anymore.
+         */
+        let pdfWindow =
+            null;
+
+        if (!ios) {
+
+            pdfWindow =
+                window.open(
+                    "",
+                    "_blank"
+                );
+
+            if (pdfWindow) {
+
+                try {
+
+                    pdfWindow.document.title =
+                        "Preparing invoice…";
+
+                    pdfWindow.document.body.innerHTML = `
+                        <div style="
+                            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+                            padding:32px;
+                            text-align:center;
+                            color:#555;
+                        ">
+                            Preparing invoice…
+                        </div>
+                    `;
+
+                } catch (error) {
+
+                    console.warn(
+                        "Could not write PDF preparation page:",
+                        error
+                    );
+                }
             }
         }
 
 
         try {
 
-            const clientName =
-                document
-                    .getElementById("client-name")
-                    .value
-                    .trim() ||
-                "Cash Customer";
-
-
-            const clientAddress =
-                document
-                    .getElementById("client-address")
-                    .value
-                    .trim();
-
-
-            const invNum =
-                invoiceNumInput.value.trim() ||
-                "INV0001";
-
-
-            const rawDate =
-                dateInput.value;
-
-
-            const parsedDate =
-                new Date(
-                    `${rawDate}T00:00:00`
-                );
-
-
-            const dateString =
-                parsedDate.toLocaleDateString(
-                    "en-US",
-                    {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric"
-                    }
-                );
-
-
-            /* -------------------------------------------------
-               CALCULATE TOTALS
-               ------------------------------------------------- */
-
-            let subtotal = 0;
-
-            cart.forEach((item) => {
-
-                subtotal +=
-                    item.rate * item.qty;
-            });
-
-
-            const discountPct =
-                parseFloat(
-                    discountInput.value
-                ) || 0;
-
-
-            const discountAmount =
-                subtotal *
-                (discountPct / 100);
-
-
-            const finalTotal =
-                subtotal -
-                discountAmount;
-
-
-            /* -------------------------------------------------
-               LOGO
-               ------------------------------------------------- */
-
-            if (!invoiceLogoSvg) {
-                await invoiceLogoPromise;
-            }
-
-
-            /* -------------------------------------------------
-               BUILD PDF
-               ------------------------------------------------- */
-
-            const docDefinition =
-                buildInvoiceDocDefinition({
-
-                    invNum,
-
-                    dateString,
-
-                    clientName,
-
-                    clientAddress,
-
-                    items: cart,
-
-                    subtotal,
-
-                    discountAmount,
-
-                    finalTotal,
-
-                    logoSvg:
-                        invoiceLogoSvg
-                });
+            const data =
+                getInvoicePdfInputs();
 
 
             /* -------------------------------------------------
@@ -1862,8 +2935,9 @@ generateBtn.addEventListener(
                ------------------------------------------------- */
 
             const numericMatch =
-                invNum.match(/\d+/);
-
+                data.invNum.match(
+                    /\d+/
+                );
 
             if (numericMatch) {
 
@@ -1872,7 +2946,6 @@ generateBtn.addEventListener(
                         numericMatch[0],
                         10
                     );
-
 
                 setDoc(
 
@@ -1888,10 +2961,13 @@ generateBtn.addEventListener(
                     },
 
                     {
-                        merge: true
+                        merge:
+                            true
                     }
 
-                ).catch(console.error);
+                ).catch(
+                    console.error
+                );
             }
 
 
@@ -1899,36 +2975,40 @@ generateBtn.addEventListener(
                OPTIONAL CLOUD SAVE
                ------------------------------------------------- */
 
-            if (saveCheckbox.checked) {
+            if (
+                saveCheckbox.checked
+            ) {
 
                 const invoiceRecord = {
 
                     invoiceNumber:
-                        invNum,
+                        data.invNum,
 
                     date:
-                        dateString,
+                        data.dateString,
 
                     clientName:
-                        clientName,
+                        data.clientName,
 
                     clientAddress:
-                        clientAddress,
+                        data.clientAddress,
 
                     items:
                         cart,
 
                     subtotal:
-                        subtotal,
+                        data.subtotal,
 
                     discountPct:
-                        discountPct,
+                        parseFloat(
+                            discountInput.value
+                        ) || 0,
 
                     discountAmount:
-                        discountAmount,
+                        data.discountAmount,
 
                     total:
-                        finalTotal,
+                        data.finalTotal,
 
                     savedBy:
                         currentAuthenticatedUser
@@ -1936,7 +3016,8 @@ generateBtn.addEventListener(
                             : "System",
 
                     createdAt:
-                        new Date().toISOString()
+                        new Date()
+                            .toISOString()
                 };
 
 
@@ -1945,31 +3026,100 @@ generateBtn.addEventListener(
                     doc(
                         db,
                         "invoices",
-                        invNum
+                        data.invNum
                     ),
 
                     invoiceRecord
 
                 )
-                    .then(() => {
+                    .then(
+                        () => {
 
-                        console.log(
-                            `Invoice ${invNum} saved to cloud.`
-                        );
+                            console.log(
+                                `Invoice ${data.invNum} saved to cloud.`
+                            );
+                        }
+                    )
+                    .catch(
+                        console.error
+                    );
+            }
 
-                    })
-                    .catch(console.error);
+
+            /*
+             * =================================================
+             * IOS
+             * =================================================
+             *
+             * Share Sheet was already launched directly
+             * from the Generate click.
+             *
+             * Do NOT generate another PDF here.
+             */
+            if (
+                iosShareStarted
+            ) {
+
+                setButtonLoading(
+                    generateBtn,
+                    false
+                );
+
+                return;
             }
 
 
             /* -------------------------------------------------
-               OPEN / SHARE PDF
+               NON-IOS PDF
                ------------------------------------------------- */
 
+            if (
+                !invoiceLogoSvg
+            ) {
+
+                await invoiceLogoPromise;
+            }
+
+
+            const docDefinition =
+                buildInvoiceDocDefinition({
+
+                    invNum:
+                        data.invNum,
+
+                    dateString:
+                        data.dateString,
+
+                    clientName:
+                        data.clientName,
+
+                    clientAddress:
+                        data.clientAddress,
+
+                    items:
+                        cart,
+
+                    subtotal:
+                        data.subtotal,
+
+                    discountAmount:
+                        data.discountAmount,
+
+                    finalTotal:
+                        data.finalTotal,
+
+                    logoSvg:
+                        invoiceLogoSvg
+                });
+
+
             await generateInvoicePdf(
+
                 docDefinition,
+
                 pdfWindow,
-                invNum
+
+                data.invNum
             );
 
 
@@ -1993,7 +3143,9 @@ generateBtn.addEventListener(
             ) {
 
                 try {
+
                     pdfWindow.close();
+
                 } catch (_) {}
             }
 
@@ -2013,6 +3165,52 @@ generateBtn.addEventListener(
 
 
 /* =========================================================
+   PREBUILD PDF WHEN INVOICE DATA CHANGES
+   ========================================================= */
+
+/*
+ * These listeners keep the PDF File ready.
+ *
+ * This is what makes the iOS one-tap Share Sheet
+ * possible without losing user activation.
+ */
+
+[
+    document.getElementById(
+        "client-name"
+    ),
+
+    document.getElementById(
+        "client-address"
+    ),
+
+    dateInput,
+
+    invoiceNumInput,
+
+    discountInput
+
+].forEach(
+    (element) => {
+
+        if (!element) {
+            return;
+        }
+
+        element.addEventListener(
+            "input",
+            scheduleInvoicePdfPrebuild
+        );
+
+        element.addEventListener(
+            "change",
+            scheduleInvoicePdfPrebuild
+        );
+    }
+);
+
+
+/* =========================================================
    SEARCH SAVED INVOICE
    ========================================================= */
 
@@ -2023,14 +3221,13 @@ searchBtn.addEventListener(
         e.preventDefault();
         e.stopPropagation();
 
-
         const queryId =
             searchInput.value
                 .trim()
                 .toUpperCase();
 
-
-        searchStatusMsg.textContent = "";
+        searchStatusMsg.textContent =
+            "";
 
         searchStatusMsg.className =
             "status-msg";
@@ -2038,8 +3235,8 @@ searchBtn.addEventListener(
         viewDetailsBtn.style.display =
             "none";
 
-        searchedInvoiceData = null;
-
+        searchedInvoiceData =
+            null;
 
         if (!queryId) {
 
@@ -2074,25 +3271,25 @@ searchBtn.addEventListener(
                     queryId
                 );
 
-
             const invSnap =
-                await getDoc(invRef);
+                await getDoc(
+                    invRef
+                );
 
 
-            if (invSnap.exists()) {
+            if (
+                invSnap.exists()
+            ) {
 
                 searchedInvoiceData =
                     invSnap.data();
 
-
                 searchStatusMsg.textContent =
                     `Invoice ${queryId} found!`;
-
 
                 searchStatusMsg.classList.add(
                     "status-success"
                 );
-
 
                 viewDetailsBtn.style.display =
                     "block";
@@ -2102,12 +3299,10 @@ searchBtn.addEventListener(
                 searchStatusMsg.textContent =
                     `No invoice found for ${queryId}.`;
 
-
                 searchStatusMsg.classList.add(
                     "status-error"
                 );
             }
-
 
         } catch (err) {
 
@@ -2116,15 +3311,12 @@ searchBtn.addEventListener(
                 err
             );
 
-
             searchStatusMsg.textContent =
                 "Error fetching invoice.";
-
 
             searchStatusMsg.classList.add(
                 "status-error"
             );
-
 
         } finally {
 
@@ -2148,105 +3340,104 @@ viewDetailsBtn.addEventListener(
         e.preventDefault();
         e.stopPropagation();
 
-
-        if (!searchedInvoiceData) {
+        if (
+            !searchedInvoiceData
+        ) {
             return;
         }
-
 
         detailInvNum.textContent =
             searchedInvoiceData.invoiceNumber;
 
-
         detailDate.textContent =
             searchedInvoiceData.date;
 
-
         detailClientName.textContent =
             searchedInvoiceData.clientName;
-
 
         detailClientAddress.textContent =
             searchedInvoiceData.clientAddress ||
             "None provided";
 
-
         detailSavedBy.textContent =
             searchedInvoiceData.savedBy ||
             "N/A";
 
-
         detailItemsList.innerHTML =
             "";
-
 
         (
             searchedInvoiceData.items ||
             []
-        ).forEach((item) => {
+        ).forEach(
+            (item) => {
 
-            const itemTotal =
-                item.rate * item.qty;
+                const itemTotal =
+                    item.rate *
+                    item.qty;
 
+                const div =
+                    document.createElement(
+                        "div"
+                    );
 
-            const div =
-                document.createElement("div");
+                div.className =
+                    "cart-item";
 
+                div.innerHTML = `
+                    <div class="cart-item-details">
 
-            div.className =
-                "cart-item";
+                        <span class="cart-item-title">
+                            ${item.name}
+                        </span>
 
+                        <span class="cart-item-math">
+                            ${item.qty}
+                            x
+                            ${formatINR(item.rate)}
+                            =
+                            ${formatINR(itemTotal)}
+                            (Batch: ${
+                                item.batch ||
+                                "N/A"
+                            },
+                            Mfg: ${
+                                item.mfg ||
+                                "N/A"
+                            })
+                        </span>
 
-            div.innerHTML = `
+                    </div>
+                `;
 
-                <div class="cart-item-details">
-
-                    <span class="cart-item-title">
-                        ${item.name}
-                    </span>
-
-                    <span class="cart-item-math">
-                        ${item.qty}
-                        x
-                        ${formatINR(item.rate)}
-                        =
-                        ${formatINR(itemTotal)}
-                        (Batch: ${item.batch || "N/A"},
-                        Mfg: ${item.mfg || "N/A"})
-                    </span>
-
-                </div>
-
-            `;
-
-
-            detailItemsList.appendChild(
-                div
-            );
-        });
+                detailItemsList.appendChild(
+                    div
+                );
+            }
+        );
 
 
         detailSubtotal.textContent =
             formatINR(
-                searchedInvoiceData.subtotal || 0
+                searchedInvoiceData.subtotal ||
+                0
             );
-
 
         detailDiscount.textContent =
             `- ${formatINR(
-                searchedInvoiceData.discountAmount || 0
+                searchedInvoiceData.discountAmount ||
+                0
             )}`;
-
 
         detailTotal.textContent =
             `Total: ${formatINR(
-                searchedInvoiceData.total || 0
+                searchedInvoiceData.total ||
+                0
             )}`;
 
 
         appScreen.style.display =
             "none";
-
 
         detailsScreen.style.display =
             "block";
