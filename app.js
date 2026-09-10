@@ -20,6 +20,11 @@ import {
     setDoc
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+
+/* =========================================================
+   FIREBASE
+   ========================================================= */
+
 const firebaseConfig = {
     apiKey: "AIzaSyDkFaTrs-qEGdjw2ogV4OqE65KPZPOjohk",
     authDomain: "varahi-invoices.firebaseapp.com",
@@ -36,6 +41,11 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
+
+/* =========================================================
+   PDF FONT
+   ========================================================= */
+
 const VALLEY_SANS_REGULAR_URL =
     "https://github.com/hethwiQ/siteassets/raw/refs/heads/main/fonts/Valley_Sans/static/ValleySans-Regular.ttf";
 
@@ -48,20 +58,37 @@ const VALLEY_SANS_SEMIBOLD_URL =
 const VALLEY_SANS_BOLD_URL =
     "https://github.com/hethwiQ/siteassets/raw/refs/heads/main/fonts/Valley_Sans/static/ValleySans-Bold.ttf";
 
+
+/*
+ * Valley Sans is used ONLY by the generated PDF.
+ * The website/app UI continues to use Haffer through style.css.
+ */
+
 if (window.pdfMake && typeof window.pdfMake.addFonts === "function") {
+
     window.pdfMake.addFonts({
+
         ValleySans: {
             normal: VALLEY_SANS_REGULAR_URL,
             bold: VALLEY_SANS_SEMIBOLD_URL,
             italics: VALLEY_SANS_REGULAR_URL,
             bolditalics: VALLEY_SANS_BOLD_URL
         },
+
         ValleySansMedium: {
             normal: VALLEY_SANS_MEDIUM_URL,
             bold: VALLEY_SANS_SEMIBOLD_URL,
             italics: VALLEY_SANS_MEDIUM_URL,
             bolditalics: VALLEY_SANS_BOLD_URL
         },
+
+        ValleySansSemiBold: {
+            normal: VALLEY_SANS_SEMIBOLD_URL,
+            bold: VALLEY_SANS_SEMIBOLD_URL,
+            italics: VALLEY_SANS_SEMIBOLD_URL,
+            bolditalics: VALLEY_SANS_BOLD_URL
+        },
+
         ValleySansBold: {
             normal: VALLEY_SANS_BOLD_URL,
             bold: VALLEY_SANS_BOLD_URL,
@@ -71,221 +98,451 @@ if (window.pdfMake && typeof window.pdfMake.addFonts === "function") {
     });
 }
 
+
+/*
+ * Warm all PDF font files before Generate is pressed.
+ */
+
 [
     VALLEY_SANS_REGULAR_URL,
     VALLEY_SANS_MEDIUM_URL,
     VALLEY_SANS_SEMIBOLD_URL,
     VALLEY_SANS_BOLD_URL
 ].forEach((fontUrl) => {
+
     fetch(fontUrl, {
         cache: "force-cache"
     }).catch(() => {});
+
 });
 
-setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+/* =========================================================
+   AUTH PERSISTENCE
+   ========================================================= */
+
+setPersistence(
+    auth,
+    browserLocalPersistence
+).catch(console.error);
+
+
+/* =========================================================
+   GLOBAL STATE
+   ========================================================= */
 
 let cart = [];
 let inactivityTimer;
 let currentAuthenticatedUser = null;
 let searchedInvoiceData = null;
 
-const INACTIVITY_LIMIT = 5 * 60 * 1000;
+const INACTIVITY_LIMIT =
+    5 * 60 * 1000;
 
-const loginScreen = document.getElementById("login-screen");
-const appScreen = document.getElementById("app-screen");
-const detailsScreen = document.getElementById("details-screen");
-const deniedScreen = document.getElementById("denied-screen");
 
-const deniedEmailText = document.getElementById("denied-email-text");
-const deniedBackBtn = document.getElementById("denied-back-btn");
-const userBadge = document.getElementById("user-badge");
+/* =========================================================
+   DOM ELEMENTS
+   ========================================================= */
 
-const globalLoader = document.getElementById("global-loader");
-const loaderText = document.getElementById("loader-text");
+const loginScreen =
+    document.getElementById("login-screen");
 
-const productSelect = document.getElementById("product-select");
-const batchInput = document.getElementById("product-batch");
-const mfgInput = document.getElementById("product-mfg");
-const discountInput = document.getElementById("discount-pct");
-const cartListUI = document.getElementById("cart-list");
+const appScreen =
+    document.getElementById("app-screen");
 
-const dateInput = document.getElementById("invoice-date");
-const invoiceNumInput = document.getElementById("invoice-number");
-const saveCheckbox = document.getElementById("save-invoice-checkbox");
+const detailsScreen =
+    document.getElementById("details-screen");
 
-const searchInput = document.getElementById("search-invoice-input");
-const searchBtn = document.getElementById("search-invoice-btn");
-const searchStatusMsg = document.getElementById("search-status-msg");
-const viewDetailsBtn = document.getElementById("view-details-btn");
-const detailsBackBtn = document.getElementById("details-back-btn");
+const deniedScreen =
+    document.getElementById("denied-screen");
 
-const detailInvNum = document.getElementById("detail-inv-num");
-const detailDate = document.getElementById("detail-date");
-const detailClientName = document.getElementById("detail-client-name");
-const detailClientAddress = document.getElementById("detail-client-address");
-const detailSavedBy = document.getElementById("detail-saved-by");
-const detailItemsList = document.getElementById("detail-items-list");
-const detailSubtotal = document.getElementById("detail-subtotal");
-const detailDiscount = document.getElementById("detail-discount");
-const detailTotal = document.getElementById("detail-total");
+const deniedEmailText =
+    document.getElementById("denied-email-text");
 
-const generateBtn = document.getElementById("generate-btn");
+const deniedBackBtn =
+    document.getElementById("denied-back-btn");
+
+const userBadge =
+    document.getElementById("user-badge");
+
+const globalLoader =
+    document.getElementById("global-loader");
+
+const loaderText =
+    document.getElementById("loader-text");
+
+const productSelect =
+    document.getElementById("product-select");
+
+const batchInput =
+    document.getElementById("product-batch");
+
+const mfgInput =
+    document.getElementById("product-mfg");
+
+const discountInput =
+    document.getElementById("discount-pct");
+
+const cartListUI =
+    document.getElementById("cart-list");
+
+const dateInput =
+    document.getElementById("invoice-date");
+
+const invoiceNumInput =
+    document.getElementById("invoice-number");
+
+const saveCheckbox =
+    document.getElementById("save-invoice-checkbox");
+
+const searchInput =
+    document.getElementById("search-invoice-input");
+
+const searchBtn =
+    document.getElementById("search-invoice-btn");
+
+const searchStatusMsg =
+    document.getElementById("search-status-msg");
+
+const viewDetailsBtn =
+    document.getElementById("view-details-btn");
+
+const detailsBackBtn =
+    document.getElementById("details-back-btn");
+
+const detailInvNum =
+    document.getElementById("detail-inv-num");
+
+const detailDate =
+    document.getElementById("detail-date");
+
+const detailClientName =
+    document.getElementById("detail-client-name");
+
+const detailClientAddress =
+    document.getElementById("detail-client-address");
+
+const detailSavedBy =
+    document.getElementById("detail-saved-by");
+
+const detailItemsList =
+    document.getElementById("detail-items-list");
+
+const detailSubtotal =
+    document.getElementById("detail-subtotal");
+
+const detailDiscount =
+    document.getElementById("detail-discount");
+
+const detailTotal =
+    document.getElementById("detail-total");
+
+const generateBtn =
+    document.getElementById("generate-btn");
+
+
+/* =========================================================
+   LOADER
+   ========================================================= */
 
 function showLoader(text) {
-    loaderText.textContent = text || "Loading…";
-    globalLoader.style.display = "flex";
+
+    loaderText.textContent =
+        text || "Loading…";
+
+    globalLoader.style.display =
+        "flex";
 }
 
 function hideLoader() {
-    globalLoader.style.display = "none";
+
+    globalLoader.style.display =
+        "none";
 }
 
 let signInInProgress = false;
 
+
+/* =========================================================
+   DEFAULT DATE
+   ========================================================= */
+
 const today = new Date();
-dateInput.value = today.toISOString().split("T")[0];
 
-const printLogoImg = document.getElementById("print-logo-img");
+dateInput.value =
+    today.toISOString().split("T")[0];
 
-if (printLogoImg && !printLogoImg.complete) {
-    const preload = new Image();
-    preload.src = printLogoImg.src;
+
+/* =========================================================
+   LOGO PRELOAD
+   ========================================================= */
+
+const printLogoImg =
+    document.getElementById("print-logo-img");
+
+if (
+    printLogoImg &&
+    !printLogoImg.complete
+) {
+
+    const preload =
+        new Image();
+
+    preload.src =
+        printLogoImg.src;
 }
+
+
+/*
+ * Fetch the SVG once at startup.
+ */
 
 let invoiceLogoSvg = null;
 
-const invoiceLogoPromise = fetch("img/Logo.svg", {
-    cache: "force-cache"
-})
-    .then((response) => {
-        if (!response.ok) {
-            throw new Error(`Logo request failed: ${response.status}`);
+const invoiceLogoPromise =
+    fetch(
+        "img/Logo.svg",
+        {
+            cache: "force-cache"
         }
+    )
+        .then((response) => {
 
-        return response.text();
-    })
-    .then((svg) => {
-        invoiceLogoSvg = svg;
-        return svg;
-    })
-    .catch((error) => {
-        console.warn("Invoice PDF logo preload failed:", error);
-        return null;
-    });
+            if (!response.ok) {
+
+                throw new Error(
+                    `Logo request failed: ${response.status}`
+                );
+            }
+
+            return response.text();
+        })
+        .then((svg) => {
+
+            invoiceLogoSvg =
+                svg;
+
+            return svg;
+        })
+        .catch((error) => {
+
+            console.warn(
+                "Invoice PDF logo preload failed:",
+                error
+            );
+
+            return null;
+        });
+
+
+/* =========================================================
+   AUTHORIZATION
+   ========================================================= */
 
 async function isUserAuthorized(email) {
+
     if (!email) {
         return false;
     }
 
     try {
-        const userRef = doc(
-            db,
-            "authorized_users",
-            email.toLowerCase()
-        );
 
-        const userSnap = await getDoc(userRef);
+        const userRef =
+            doc(
+                db,
+                "authorized_users",
+                email.toLowerCase()
+            );
+
+        const userSnap =
+            await getDoc(userRef);
 
         return (
             userSnap.exists() &&
             userSnap.data().active === true
         );
+
     } catch (error) {
-        console.error("Auth check failed:", error);
+
+        console.error(
+            "Auth check failed:",
+            error
+        );
+
         return false;
     }
 }
 
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        if (signInInProgress) {
-            showLoader("Checking your access…");
-        }
 
-        const authorized =
-            await isUserAuthorized(user.email);
+/* =========================================================
+   AUTH STATE
+   ========================================================= */
 
-        if (authorized) {
-            currentAuthenticatedUser = user;
+onAuthStateChanged(
+    auth,
+    async (user) => {
+
+        if (user) {
 
             if (signInInProgress) {
-                showLoader("Loading your workspace…");
+                showLoader(
+                    "Checking your access…"
+                );
             }
 
-            deniedScreen.style.display = "none";
-            loginScreen.style.display = "none";
-            appScreen.style.display = "block";
+            const authorized =
+                await isUserAuthorized(
+                    user.email
+                );
 
-            userBadge.textContent =
-                `Signed in as: ${user.email}`;
+            if (authorized) {
 
-            await Promise.all([
-                loadProducts(),
-                loadInvoiceConfig()
-            ]);
+                currentAuthenticatedUser =
+                    user;
 
-            startInactivityTimer();
+                if (signInInProgress) {
+                    showLoader(
+                        "Loading your workspace…"
+                    );
+                }
 
-            signInInProgress = false;
-            hideLoader();
+                deniedScreen.style.display =
+                    "none";
+
+                loginScreen.style.display =
+                    "none";
+
+                appScreen.style.display =
+                    "block";
+
+                userBadge.textContent =
+                    `Signed in as: ${user.email}`;
+
+                await Promise.all([
+                    loadProducts(),
+                    loadInvoiceConfig()
+                ]);
+
+                startInactivityTimer();
+
+                signInInProgress =
+                    false;
+
+                hideLoader();
+
+            } else {
+
+                const rejectedEmail =
+                    user.email;
+
+                currentAuthenticatedUser =
+                    null;
+
+                await signOut(auth);
+
+                appScreen.style.display =
+                    "none";
+
+                detailsScreen.style.display =
+                    "none";
+
+                loginScreen.style.display =
+                    "none";
+
+                deniedEmailText.textContent =
+                    `Signed in as: ${rejectedEmail}`;
+
+                deniedScreen.style.display =
+                    "block";
+
+                clearTimeout(
+                    inactivityTimer
+                );
+
+                removeActivityListeners();
+
+                signInInProgress =
+                    false;
+
+                hideLoader();
+            }
 
         } else {
-            const rejectedEmail = user.email;
 
-            currentAuthenticatedUser = null;
+            currentAuthenticatedUser =
+                null;
 
-            await signOut(auth);
+            if (
+                deniedScreen.style.display !==
+                "block"
+            ) {
 
-            appScreen.style.display = "none";
-            detailsScreen.style.display = "none";
-            loginScreen.style.display = "none";
+                loginScreen.style.display =
+                    "flex";
+            }
 
-            deniedEmailText.textContent =
-                `Signed in as: ${rejectedEmail}`;
+            appScreen.style.display =
+                "none";
 
-            deniedScreen.style.display = "block";
+            detailsScreen.style.display =
+                "none";
 
-            clearTimeout(inactivityTimer);
+            userBadge.textContent =
+                "";
+
+            clearTimeout(
+                inactivityTimer
+            );
+
             removeActivityListeners();
 
-            signInInProgress = false;
+            signInInProgress =
+                false;
+
             hideLoader();
         }
-
-    } else {
-        currentAuthenticatedUser = null;
-
-        if (deniedScreen.style.display !== "block") {
-            loginScreen.style.display = "flex";
-        }
-
-        appScreen.style.display = "none";
-        detailsScreen.style.display = "none";
-        userBadge.textContent = "";
-
-        clearTimeout(inactivityTimer);
-        removeActivityListeners();
-
-        signInInProgress = false;
-        hideLoader();
     }
-});
+);
 
-deniedBackBtn.addEventListener("click", () => {
-    deniedScreen.style.display = "none";
-    loginScreen.style.display = "flex";
-});
+
+/* =========================================================
+   DENIED SCREEN
+   ========================================================= */
+
+deniedBackBtn.addEventListener(
+    "click",
+    () => {
+
+        deniedScreen.style.display =
+            "none";
+
+        loginScreen.style.display =
+            "flex";
+    }
+);
+
+
+/* =========================================================
+   INACTIVITY WATCHER
+   ========================================================= */
 
 function resetInactivityTimer() {
-    clearTimeout(inactivityTimer);
 
-    inactivityTimer = setTimeout(() => {
-        signOut(auth);
-    }, INACTIVITY_LIMIT);
+    clearTimeout(
+        inactivityTimer
+    );
+
+    inactivityTimer =
+        setTimeout(
+            () => {
+                signOut(auth);
+            },
+            INACTIVITY_LIMIT
+        );
 }
 
 function setupActivityListeners() {
+
     window.addEventListener(
         "mousemove",
         resetInactivityTimer
@@ -313,6 +570,7 @@ function setupActivityListeners() {
 }
 
 function removeActivityListeners() {
+
     window.removeEventListener(
         "mousemove",
         resetInactivityTimer
@@ -340,114 +598,182 @@ function removeActivityListeners() {
 }
 
 function startInactivityTimer() {
+
     setupActivityListeners();
+
     resetInactivityTimer();
 }
 
+
+/* =========================================================
+   GOOGLE LOGIN
+   ========================================================= */
+
 document
     .getElementById("google-login-btn")
-    .addEventListener("click", (e) => {
+    .addEventListener(
+        "click",
+        (e) => {
 
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-        signInInProgress = true;
+            signInInProgress =
+                true;
 
-        showLoader("Signing in…");
+            showLoader(
+                "Signing in…"
+            );
 
-        signInWithPopup(
-            auth,
-            googleProvider
-        )
-            .then(() => {
-                document.getElementById(
-                    "error-msg"
-                ).style.display = "none";
-            })
-            .catch((error) => {
+            signInWithPopup(
+                auth,
+                googleProvider
+            )
+                .then(() => {
 
-                signInInProgress = false;
-                hideLoader();
+                    document.getElementById(
+                        "error-msg"
+                    ).style.display =
+                        "none";
+                })
+                .catch((error) => {
 
-                const errorMsg =
-                    document.getElementById("error-msg");
+                    signInInProgress =
+                        false;
 
-                errorMsg.style.display = "block";
+                    hideLoader();
 
-                errorMsg.textContent =
-                    error.message ||
-                    "Google sign-in failed.";
-            });
-    });
+                    const errorMsg =
+                        document.getElementById(
+                            "error-msg"
+                        );
+
+                    errorMsg.style.display =
+                        "block";
+
+                    errorMsg.textContent =
+                        error.message ||
+                        "Google sign-in failed.";
+                });
+        }
+    );
+
+
+/* =========================================================
+   EMAIL / PASSWORD LOGIN
+   ========================================================= */
 
 document
     .getElementById("login-btn")
-    .addEventListener("click", (e) => {
+    .addEventListener(
+        "click",
+        (e) => {
 
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-        signInInProgress = true;
+            signInInProgress =
+                true;
 
-        showLoader("Signing in…");
+            showLoader(
+                "Signing in…"
+            );
 
-        signInWithEmailAndPassword(
-            auth,
-            document.getElementById("email").value,
-            document.getElementById("password").value
-        )
-            .then(() => {
+            signInWithEmailAndPassword(
+                auth,
                 document.getElementById(
-                    "error-msg"
-                ).style.display = "none";
-            })
-            .catch(() => {
+                    "email"
+                ).value,
+                document.getElementById(
+                    "password"
+                ).value
+            )
+                .then(() => {
 
-                signInInProgress = false;
-                hideLoader();
+                    document.getElementById(
+                        "error-msg"
+                    ).style.display =
+                        "none";
+                })
+                .catch(() => {
 
-                const errorMsg =
-                    document.getElementById("error-msg");
+                    signInInProgress =
+                        false;
 
-                errorMsg.style.display = "block";
+                    hideLoader();
 
-                errorMsg.textContent =
-                    "Incorrect email or password.";
-            });
-    });
+                    const errorMsg =
+                        document.getElementById(
+                            "error-msg"
+                        );
+
+                    errorMsg.style.display =
+                        "block";
+
+                    errorMsg.textContent =
+                        "Incorrect email or password.";
+                });
+        }
+    );
+
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
 
 document
     .getElementById("logout-btn")
-    .addEventListener("click", (e) => {
+    .addEventListener(
+        "click",
+        (e) => {
 
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-        showLoader("Signing out…");
+            showLoader(
+                "Signing out…"
+            );
 
-        signOut(auth).finally(hideLoader);
-    });
+            signOut(auth).finally(
+                hideLoader
+            );
+        }
+    );
+
+
+/* =========================================================
+   INVOICE NUMBER
+   ========================================================= */
 
 async function loadInvoiceConfig() {
 
     try {
 
         const counterRef =
-            doc(db, "config", "invoiceCounter");
+            doc(
+                db,
+                "config",
+                "invoiceCounter"
+            );
 
         const docSnap =
-            await getDoc(counterRef);
+            await getDoc(
+                counterRef
+            );
 
         let nextNum = 1;
 
         if (docSnap.exists()) {
+
             nextNum =
-                docSnap.data().lastNumber + 1;
+                docSnap.data().lastNumber +
+                1;
         }
 
         invoiceNumInput.value =
             "INV" +
-            String(nextNum).padStart(4, "0");
+            String(nextNum)
+                .padStart(4, "0");
 
         scheduleInvoicePdfPreparation();
 
@@ -460,6 +786,11 @@ async function loadInvoiceConfig() {
     }
 }
 
+
+/* =========================================================
+   PRODUCTS
+   ========================================================= */
+
 async function loadProducts() {
 
     productSelect.innerHTML =
@@ -469,34 +800,50 @@ async function loadProducts() {
 
         const querySnapshot =
             await getDocs(
-                collection(db, "products")
+                collection(
+                    db,
+                    "products"
+                )
             );
 
         productSelect.innerHTML =
             '<option value="" disabled selected>Select a Product...</option>';
 
-        querySnapshot.forEach((productDoc) => {
+        querySnapshot.forEach(
+            (productDoc) => {
 
-            const product =
-                productDoc.data();
+                const product =
+                    productDoc.data();
 
-            const option =
-                document.createElement("option");
+                const option =
+                    document.createElement(
+                        "option"
+                    );
 
-            option.value =
-                JSON.stringify({
-                    id: productDoc.id,
-                    name: product.name,
-                    rate: product.rate,
-                    category:
-                        product.category || ""
-                });
+                option.value =
+                    JSON.stringify({
+                        id:
+                            productDoc.id,
 
-            option.textContent =
-                `${product.name} - ₹${product.rate}`;
+                        name:
+                            product.name,
 
-            productSelect.appendChild(option);
-        });
+                        rate:
+                            product.rate,
+
+                        category:
+                            product.category ||
+                            ""
+                    });
+
+                option.textContent =
+                    `${product.name} - ₹${product.rate}`;
+
+                productSelect.appendChild(
+                    option
+                );
+            }
+        );
 
     } catch (error) {
 
@@ -510,6 +857,11 @@ async function loadProducts() {
     }
 }
 
+
+/* =========================================================
+   CURRENCY
+   ========================================================= */
+
 function formatINR(number) {
 
     return new Intl.NumberFormat(
@@ -521,82 +873,110 @@ function formatINR(number) {
     ).format(number);
 }
 
+
+/* =========================================================
+   ADD ITEM
+   ========================================================= */
+
 document
     .getElementById("add-item-btn")
-    .addEventListener("click", (e) => {
+    .addEventListener(
+        "click",
+        (e) => {
 
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-        if (!productSelect.value) {
+            if (!productSelect.value) {
 
-            alert(
-                "Please select a product first."
-            );
+                alert(
+                    "Please select a product first."
+                );
 
-            return;
+                return;
+            }
+
+            const productData =
+                JSON.parse(
+                    productSelect.value
+                );
+
+            const qty =
+                parseInt(
+                    document.getElementById(
+                        "product-qty"
+                    ).value
+                );
+
+            const batch =
+                batchInput.value.trim() ||
+                "As Per Pack";
+
+            const mfg =
+                mfgInput.value.trim() ||
+                "As Per Pack";
+
+            if (
+                qty < 1 ||
+                isNaN(qty)
+            ) {
+                return;
+            }
+
+            const existingItem =
+                cart.find(
+                    (item) =>
+                        item.id ===
+                            productData.id &&
+                        item.batch ===
+                            batch
+                );
+
+            if (existingItem) {
+
+                existingItem.qty +=
+                    qty;
+
+            } else {
+
+                cart.push({
+                    ...productData,
+                    qty:
+                        qty,
+                    batch:
+                        batch,
+                    mfg:
+                        mfg
+                });
+            }
+
+            productSelect.value =
+                "";
+
+            batchInput.value =
+                "";
+
+            mfgInput.value =
+                "";
+
+            document.getElementById(
+                "product-qty"
+            ).value =
+                "1";
+
+            updateCartUI();
         }
+    );
 
-        const productData =
-            JSON.parse(productSelect.value);
 
-        const qty =
-            parseInt(
-                document.getElementById(
-                    "product-qty"
-                ).value
-            );
-
-        const batch =
-            batchInput.value.trim() ||
-            "As Per Pack";
-
-        const mfg =
-            mfgInput.value.trim() ||
-            "As Per Pack";
-
-        if (
-            qty < 1 ||
-            isNaN(qty)
-        ) {
-            return;
-        }
-
-        const existingItem =
-            cart.find(
-                (item) =>
-                    item.id === productData.id &&
-                    item.batch === batch
-            );
-
-        if (existingItem) {
-
-            existingItem.qty += qty;
-
-        } else {
-
-            cart.push({
-                ...productData,
-                qty,
-                batch,
-                mfg
-            });
-        }
-
-        productSelect.value = "";
-        batchInput.value = "";
-        mfgInput.value = "";
-
-        document.getElementById(
-            "product-qty"
-        ).value = "1";
-
-        updateCartUI();
-    });
+/* =========================================================
+   CART
+   ========================================================= */
 
 function updateCartUI() {
 
-    cartListUI.innerHTML = "";
+    cartListUI.innerHTML =
+        "";
 
     let subtotal = 0;
 
@@ -606,37 +986,50 @@ function updateCartUI() {
             '<p style="color: #777; font-size: 14px; margin: 0;">Cart is empty.</p>';
     }
 
-    cart.forEach((item, index) => {
+    cart.forEach(
+        (item, index) => {
 
-        const itemTotal =
-            item.rate * item.qty;
+            const itemTotal =
+                item.rate *
+                item.qty;
 
-        subtotal += itemTotal;
+            subtotal +=
+                itemTotal;
 
-        const li =
-            document.createElement("div");
+            const li =
+                document.createElement(
+                    "div"
+                );
 
-        li.className = "cart-item";
+            li.className =
+                "cart-item";
 
-        li.innerHTML = `
-            <div class="cart-item-details">
-                <span class="cart-item-title">${item.name}</span>
-                <span class="cart-item-math">
-                    ${item.qty} x ${formatINR(item.rate)}
-                    = ${formatINR(itemTotal)}
-                    (Batch: ${item.batch})
-                </span>
-            </div>
+            li.innerHTML = `
+                <div class="cart-item-details">
+                    <span class="cart-item-title">${item.name}</span>
 
-            <button
-                class="remove-btn"
-                type="button"
-                onclick="removeItem(${index})"
-            >&times;</button>
-        `;
+                    <span class="cart-item-math">
+                        ${item.qty}
+                        x
+                        ${formatINR(item.rate)}
+                        =
+                        ${formatINR(itemTotal)}
+                        (Batch: ${item.batch})
+                    </span>
+                </div>
 
-        cartListUI.appendChild(li);
-    });
+                <button
+                    class="remove-btn"
+                    type="button"
+                    onclick="removeItem(${index})"
+                >&times;</button>
+            `;
+
+            cartListUI.appendChild(
+                li
+            );
+        }
+    );
 
     const discountPct =
         parseFloat(
@@ -654,20 +1047,31 @@ function updateCartUI() {
     document.getElementById(
         "cart-subtotal"
     ).textContent =
-        formatINR(subtotal);
+        formatINR(
+            subtotal
+        );
 
     document.getElementById(
         "cart-discount"
     ).textContent =
-        `- ${formatINR(discountAmount)}`;
+        `- ${formatINR(
+            discountAmount
+        )}`;
 
     document.getElementById(
         "cart-total"
     ).textContent =
-        `Total: ${formatINR(finalTotal)}`;
+        `Total: ${formatINR(
+            finalTotal
+        )}`;
 
     scheduleInvoicePdfPreparation();
 }
+
+
+/* =========================================================
+   BUTTON LOADING
+   ========================================================= */
 
 function setButtonLoading(
     btn,
@@ -685,6 +1089,7 @@ function setButtonLoading(
             btn.dataset.originalText ===
             undefined
         ) {
+
             btn.dataset.originalText =
                 btn.textContent;
         }
@@ -693,7 +1098,8 @@ function setButtonLoading(
             loadingText ||
             "Please wait…";
 
-        btn.disabled = true;
+        btn.disabled =
+            true;
 
         btn.classList.add(
             "is-loading"
@@ -705,11 +1111,13 @@ function setButtonLoading(
             btn.dataset.originalText !==
             undefined
         ) {
+
             btn.textContent =
                 btn.dataset.originalText;
         }
 
-        btn.disabled = false;
+        btn.disabled =
+            false;
 
         btn.classList.remove(
             "is-loading"
@@ -722,19 +1130,24 @@ discountInput.addEventListener(
     updateCartUI
 );
 
-window.removeItem = function(index) {
+window.removeItem =
+    function(index) {
 
-    cart.splice(index, 1);
+        cart.splice(
+            index,
+            1
+        );
 
-    updateCartUI();
-};
+        updateCartUI();
+    };
 
 
 /* =========================================================
-   PDF GENERATION
+   BUILD PDF DOCUMENT
    ========================================================= */
 
 function buildInvoiceDocDefinition({
+
     invNum,
     dateString,
     clientName,
@@ -744,10 +1157,17 @@ function buildInvoiceDocDefinition({
     discountAmount,
     finalTotal,
     logoSvg
+
 }) {
 
     const currency =
-        (value) => formatINR(value);
+        (value) =>
+            formatINR(value);
+
+
+    /* -----------------------------------------------------
+       DESCRIPTION CELL
+       ----------------------------------------------------- */
 
     const descriptionCell =
         (item) => {
@@ -755,408 +1175,667 @@ function buildInvoiceDocDefinition({
             const meta = [];
 
             meta.push(
-                `Batch : ${item.batch || "As Per Pack"}`
+                `Batch : ${
+                    item.batch ||
+                    "As Per Pack"
+                }`
             );
 
             meta.push(
-                `Mfg Dt. : ${item.mfg || "As Per Pack"}`
+                `Mfg Dt. : ${
+                    item.mfg ||
+                    "As Per Pack"
+                }`
             );
 
             return {
+
                 stack: [
+
                     {
                         text:
-                            item.name || "",
-                        font: "ValleySansMedium",
-                        fontSize: 9.5,
-                        color: "#222222",
-                        margin: [
-                            0,
-                            0,
-                            0,
-                            3
-                        ]
+                            item.name ||
+                            "",
+
+                        font:
+                            "ValleySansMedium",
+
+                        fontSize:
+                            9.5,
+
+                        color:
+                            "#222222",
+
+                        margin:
+                            [
+                                0,
+                                0,
+                                0,
+                                3
+                            ]
                     },
+
                     {
                         text:
-                            meta.join("\n"),
-                        font: "ValleySans",
-                        fontSize: 7.5,
-                        color: "#666666",
-                        lineHeight: 1.15
+                            meta.join(
+                                "\n"
+                            ),
+
+                        font:
+                            "ValleySans",
+
+                        fontSize:
+                            7.5,
+
+                        color:
+                            "#666666",
+
+                        lineHeight:
+                            1.15
                     }
                 ],
-                margin: [
-                    0,
-                    1,
-                    0,
-                    2
-                ]
+
+                margin:
+                    [
+                        0,
+                        1,
+                        0,
+                        2
+                    ]
             };
         };
 
+
+    /* -----------------------------------------------------
+       TABLE
+       ----------------------------------------------------- */
+
     const tableBody = [
+
         [
+
             {
-                text: "DESCRIPTION",
-                style: "tableHeader",
-                alignment: "left",
-                noWrap: true
+                text:
+                    "DESCRIPTION",
+
+                style:
+                    "tableHeader",
+
+                alignment:
+                    "left",
+
+                noWrap:
+                    true
             },
+
             {
-                text: "RATE",
-                style: "tableHeader",
-                alignment: "right",
-                noWrap: true
+                text:
+                    "RATE",
+
+                style:
+                    "tableHeader",
+
+                alignment:
+                    "right",
+
+                noWrap:
+                    true
             },
+
             {
-                text: "QTY",
-                style: "tableHeader",
-                alignment: "right",
-                noWrap: true
+                text:
+                    "QTY",
+
+                style:
+                    "tableHeader",
+
+                alignment:
+                    "right",
+
+                noWrap:
+                    true
             },
+
             {
-                text: "AMOUNT",
-                style: "tableHeader",
-                alignment: "right",
-                noWrap: true
+                text:
+                    "AMOUNT",
+
+                style:
+                    "tableHeader",
+
+                alignment:
+                    "right",
+
+                noWrap:
+                    true
             }
         ]
     ];
 
-    items.forEach((item) => {
 
-        const itemTotal =
-            item.rate * item.qty;
+    items.forEach(
+        (item) => {
 
-        tableBody.push([
-            descriptionCell(item),
+            const itemTotal =
+                item.rate *
+                item.qty;
 
-            {
-                text: currency(item.rate),
-                alignment: "right",
-                margin: [
-                    0,
-                    2,
-                    0,
-                    2
-                ],
-                noWrap: true
-            },
+            tableBody.push([
 
-            {
-                text: String(item.qty),
-                alignment: "right",
-                margin: [
-                    0,
-                    2,
-                    0,
-                    2
-                ],
-                noWrap: true
-            },
+                descriptionCell(
+                    item
+                ),
 
-            {
-                text: currency(itemTotal),
-                alignment: "right",
-                margin: [
-                    0,
-                    2,
-                    0,
-                    2
-                ],
-                noWrap: true
-            }
-        ]);
-    });
+                {
+                    text:
+                        currency(
+                            item.rate
+                        ),
+
+                    alignment:
+                        "right",
+
+                    margin:
+                        [
+                            0,
+                            2,
+                            0,
+                            2
+                        ],
+
+                    noWrap:
+                        true
+                },
+
+                {
+                    text:
+                        String(
+                            item.qty
+                        ),
+
+                    alignment:
+                        "right",
+
+                    margin:
+                        [
+                            0,
+                            2,
+                            0,
+                            2
+                        ],
+
+                    noWrap:
+                        true
+                },
+
+                {
+                    text:
+                        currency(
+                            itemTotal
+                        ),
+
+                    alignment:
+                        "right",
+
+                    margin:
+                        [
+                            0,
+                            2,
+                            0,
+                            2
+                        ],
+
+                    noWrap:
+                        true
+                }
+            ]);
+        }
+    );
+
+
+    /* -----------------------------------------------------
+       LOGO
+       ----------------------------------------------------- */
 
     const logoNode =
         logoSvg
+
             ? {
-                svg: logoSvg,
-                fit: [82, 82],
-                alignment: "left"
+                svg:
+                    logoSvg,
+
+                fit:
+                    [
+                        82,
+                        82
+                    ],
+
+                alignment:
+                    "left"
             }
+
             : {
-                text: "",
-                width: 82
+                text:
+                    "",
+
+                width:
+                    82
             };
+
+
+    /* -----------------------------------------------------
+       HEADER
+       ----------------------------------------------------- */
 
     const header = {
 
         columns: [
 
             {
-                width: 88,
+                width:
+                    88,
+
                 stack: [
                     logoNode
                 ]
             },
 
+
             {
-                width: "*",
+                width:
+                    "*",
 
                 stack: [
 
                     {
                         text:
                             "Varahi Biologicals",
+
                         font:
                             "ValleySansMedium",
-                        fontSize: 16,
-                        alignment: "center",
-                        margin: [
-                            0,
-                            5,
-                            0,
-                            7
-                        ]
+
+                        fontSize:
+                            16,
+
+                        alignment:
+                            "center",
+
+                        margin:
+                            [
+                                0,
+                                5,
+                                0,
+                                7
+                            ]
                     },
+
 
                     {
                         text:
                             "Plot No 60/A, D.No.2-30/JV/90/A/BR/603, JV Colony, Gachibowli",
+
                         font:
                             "ValleySans",
-                        fontSize: 7.5,
-                        color: "#444444",
-                        alignment: "left",
-                        margin: [
-                            0,
-                            0,
-                            0,
-                            2
-                        ]
+
+                        fontSize:
+                            7.5,
+
+                        color:
+                            "#444444",
+
+                        alignment:
+                            "left",
+
+                        margin:
+                            [
+                                0,
+                                0,
+                                0,
+                                2
+                            ]
                     },
+
 
                     {
                         text:
                             "Hyderabad 500032",
+
                         font:
                             "ValleySans",
-                        fontSize: 7.5,
-                        color: "#444444",
-                        alignment: "left",
-                        margin: [
-                            0,
-                            0,
-                            0,
-                            2
-                        ]
+
+                        fontSize:
+                            7.5,
+
+                        color:
+                            "#444444",
+
+                        alignment:
+                            "left",
+
+                        margin:
+                            [
+                                0,
+                                0,
+                                0,
+                                2
+                            ]
                     },
+
 
                     {
                         text:
                             "GSTIN : 36AUCPK7425M1ZB",
+
                         font:
                             "ValleySans",
-                        fontSize: 7.5,
-                        color: "#444444",
-                        alignment: "left",
-                        margin: [
-                            0,
-                            0,
-                            0,
-                            2
-                        ]
+
+                        fontSize:
+                            7.5,
+
+                        color:
+                            "#444444",
+
+                        alignment:
+                            "left",
+
+                        margin:
+                            [
+                                0,
+                                0,
+                                0,
+                                2
+                            ]
                     },
+
 
                     {
                         text:
                             "8333979678",
+
                         font:
                             "ValleySans",
-                        fontSize: 7.5,
-                        color: "#444444",
-                        alignment: "left",
-                        margin: [
-                            0,
-                            0,
-                            0,
-                            2
-                        ]
+
+                        fontSize:
+                            7.5,
+
+                        color:
+                            "#444444",
+
+                        alignment:
+                            "left",
+
+                        margin:
+                            [
+                                0,
+                                0,
+                                0,
+                                2
+                            ]
                     },
+
 
                     {
                         text:
                             "varahibio@gmail.com",
+
                         font:
                             "ValleySans",
-                        fontSize: 7.5,
-                        color: "#444444",
-                        alignment: "left"
+
+                        fontSize:
+                            7.5,
+
+                        color:
+                            "#444444",
+
+                        alignment:
+                            "left"
                     }
                 ],
 
-                margin: [
-                    0,
-                    0,
-                    10,
-                    0
-                ]
+                margin:
+                    [
+                        0,
+                        0,
+                        10,
+                        0
+                    ]
             },
 
-            {
-                width: 92,
 
-                alignment: "right",
+            {
+                width:
+                    92,
+
+                alignment:
+                    "right",
 
                 stack: [
 
                     {
                         text:
                             "BILL OF SUPPLY",
+
                         style:
                             "metaLabel",
+
                         alignment:
                             "right",
-                        noWrap: true
+
+                        noWrap:
+                            true
                     },
+
 
                     {
                         text:
                             invNum,
+
                         style:
                             "metaValue",
+
                         alignment:
                             "right",
-                        noWrap: true
+
+                        noWrap:
+                            true
                     },
+
 
                     {
                         text:
                             "DATE",
+
                         style:
                             "metaLabel",
+
                         alignment:
                             "right",
-                        margin: [
-                            0,
-                            10,
-                            0,
-                            0
-                        ],
-                        noWrap: true
+
+                        margin:
+                            [
+                                0,
+                                10,
+                                0,
+                                0
+                            ],
+
+                        noWrap:
+                            true
                     },
+
 
                     {
                         text:
                             dateString,
+
                         style:
                             "metaValue",
+
                         alignment:
                             "right",
-                        noWrap: true
+
+                        noWrap:
+                            true
                     },
+
 
                     {
                         text:
                             "DUE",
+
                         style:
                             "metaLabel",
+
                         alignment:
                             "right",
-                        margin: [
-                            0,
-                            10,
-                            0,
-                            0
-                        ],
-                        noWrap: true
+
+                        margin:
+                            [
+                                0,
+                                10,
+                                0,
+                                0
+                            ],
+
+                        noWrap:
+                            true
                     },
+
 
                     {
                         text:
                             "On Receipt",
+
                         style:
                             "metaValue",
+
                         alignment:
                             "right",
-                        noWrap: true
+
+                        noWrap:
+                            true
                     },
+
 
                     {
                         text:
                             "BALANCE DUE",
+
                         style:
                             "metaLabel",
+
                         alignment:
                             "right",
-                        margin: [
-                            0,
-                            10,
-                            0,
-                            0
-                        ],
-                        noWrap: true
+
+                        margin:
+                            [
+                                0,
+                                10,
+                                0,
+                                0
+                            ],
+
+                        noWrap:
+                            true
                     },
+
 
                     {
                         text:
-                            `INR ${finalTotal.toFixed(2)}`,
+                            `INR ${finalTotal.toFixed(
+                                2
+                            )}`,
+
                         style:
                             "metaValueBold",
+
                         alignment:
                             "right",
-                        noWrap: true
+
+                        noWrap:
+                            true
                     }
                 ]
             }
         ],
 
-        columnGap: 8,
+        columnGap:
+            8,
 
-        margin: [
-            0,
-            0,
-            0,
-            18
-        ]
+        margin:
+            [
+                0,
+                0,
+                0,
+                18
+            ]
     };
+
+
+    /* -----------------------------------------------------
+       BILL TO
+       ----------------------------------------------------- */
 
     const billTo = {
 
         stack: [
 
             {
-                text: "BILL TO",
-                style: "metaLabel"
+                text:
+                    "BILL TO",
+
+                style:
+                    "metaLabel"
             },
 
             {
                 text:
                     clientName,
+
                 style:
                     "billToName"
             },
 
             {
                 text:
-                    clientAddress || "",
+                    clientAddress ||
+                    "",
+
                 style:
                     "billToAddress"
             }
         ],
 
-        margin: [
-            0,
-            0,
-            0,
-            16
-        ]
+        margin:
+            [
+                0,
+                0,
+                0,
+                16
+            ]
     };
+
+
+    /* -----------------------------------------------------
+       TOTALS
+       ----------------------------------------------------- */
 
     const totals = {
 
         columns: [
 
             {
-                width: "*",
-                text: ""
+                width:
+                    "*",
+
+                text:
+                    ""
             },
 
+
             {
-                width: 240,
+                width:
+                    240,
 
                 table: {
 
@@ -1168,139 +1847,195 @@ function buildInvoiceDocDefinition({
                     body: [
 
                         [
+
                             {
                                 text:
                                     "SUBTOTAL",
+
                                 style:
                                     "totalLabel",
-                                border: [
-                                    false,
-                                    false,
-                                    false,
-                                    false
-                                ]
+
+                                border:
+                                    [
+                                        false,
+                                        false,
+                                        false,
+                                        false
+                                    ]
                             },
 
                             {
                                 text:
-                                    currency(subtotal),
+                                    currency(
+                                        subtotal
+                                    ),
+
                                 style:
                                     "totalValue",
-                                border: [
-                                    false,
-                                    false,
-                                    false,
-                                    false
-                                ],
-                                noWrap: true
+
+                                border:
+                                    [
+                                        false,
+                                        false,
+                                        false,
+                                        false
+                                    ],
+
+                                noWrap:
+                                    true
                             }
                         ],
 
+
                         ...(discountAmount > 0
                             ? [
+
                                 [
+
                                     {
                                         text:
                                             "DISCOUNT",
+
                                         style:
                                             "totalLabel",
-                                        border: [
-                                            false,
-                                            false,
-                                            false,
-                                            false
-                                        ]
+
+                                        border:
+                                            [
+                                                false,
+                                                false,
+                                                false,
+                                                false
+                                            ]
                                     },
 
                                     {
                                         text:
-                                            `- ${currency(discountAmount)}`,
+                                            `- ${currency(
+                                                discountAmount
+                                            )}`,
+
                                         style:
                                             "totalValue",
-                                        border: [
-                                            false,
-                                            false,
-                                            false,
-                                            false
-                                        ],
-                                        noWrap: true
+
+                                        border:
+                                            [
+                                                false,
+                                                false,
+                                                false,
+                                                false
+                                            ],
+
+                                        noWrap:
+                                            true
                                     }
                                 ]
+
                             ]
                             : []),
 
+
                         [
+
                             {
                                 text:
                                     "TOTAL",
+
                                 style:
                                     "totalLabelStrong",
-                                border: [
-                                    false,
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                margin: [
-                                    0,
-                                    8,
-                                    0,
-                                    0
-                                ]
+
+                                border:
+                                    [
+                                        false,
+                                        true,
+                                        false,
+                                        false
+                                    ],
+
+                                margin:
+                                    [
+                                        0,
+                                        8,
+                                        0,
+                                        0
+                                    ]
                             },
 
                             {
                                 text:
-                                    currency(finalTotal),
+                                    currency(
+                                        finalTotal
+                                    ),
+
                                 style:
                                     "totalValueStrong",
-                                border: [
-                                    false,
-                                    true,
-                                    false,
-                                    false
-                                ],
-                                margin: [
-                                    0,
-                                    8,
-                                    0,
-                                    0
-                                ],
-                                noWrap: true
+
+                                border:
+                                    [
+                                        false,
+                                        true,
+                                        false,
+                                        false
+                                    ],
+
+                                margin:
+                                    [
+                                        0,
+                                        8,
+                                        0,
+                                        0
+                                    ],
+
+                                noWrap:
+                                    true
                             }
                         ],
 
+
                         [
+
                             {
                                 text:
                                     "BALANCE DUE",
+
                                 style:
                                     "balanceLabel",
-                                border: [
-                                    false,
-                                    true,
-                                    false,
+
+                                border:
+                                    [
+                                        false,
+                                        true,
+                                        false,
+                                        true
+                                    ],
+
+                                noWrap:
                                     true
-                                ],
-                                noWrap: true
                             },
 
                             {
                                 text:
-                                    `INR ${finalTotal.toFixed(2)}`,
+                                    `INR ${finalTotal.toFixed(
+                                        2
+                                    )}`,
+
                                 style:
                                     "balanceValue",
-                                border: [
-                                    false,
-                                    true,
-                                    false,
+
+                                border:
+                                    [
+                                        false,
+                                        true,
+                                        false,
+                                        true
+                                    ],
+
+                                noWrap:
                                     true
-                                ],
-                                noWrap: true
                             }
                         ]
                     ]
                 },
+
 
                 layout: {
 
@@ -1318,7 +2053,8 @@ function buildInvoiceDocDefinition({
                         () => 0,
 
                     hLineColor:
-                        () => "#DDDDDD",
+                        () =>
+                            "#DDDDDD",
 
                     paddingLeft:
                         () => 0,
@@ -1335,65 +2071,96 @@ function buildInvoiceDocDefinition({
             }
         ],
 
-        margin: [
-            0,
-            6,
-            0,
-            0
-        ]
+        margin:
+            [
+                0,
+                6,
+                0,
+                0
+            ]
     };
+
+
+    /* -----------------------------------------------------
+       DOCUMENT
+       ----------------------------------------------------- */
 
     return {
 
-        pageSize: "A4",
+        pageSize:
+            "A4",
 
-        pageMargins: [
-            58,
-            42,
-            58,
-            42
-        ],
+        pageMargins:
+            [
+                58,
+                42,
+                58,
+                42
+            ],
 
         info: {
+
             title:
                 `varahibio(${invNum})`,
+
             author:
                 "Varahi Biologicals",
+
             subject:
                 "Bill of Supply"
         },
+
 
         content: [
 
             header,
 
+
             {
                 canvas: [
+
                     {
-                        type: "line",
-                        x1: 0,
-                        y1: 0,
-                        x2: 479,
-                        y2: 0,
-                        lineWidth: 0.5,
+                        type:
+                            "line",
+
+                        x1:
+                            0,
+
+                        y1:
+                            0,
+
+                        x2:
+                            479,
+
+                        y2:
+                            0,
+
+                        lineWidth:
+                            0.5,
+
                         lineColor:
                             "#D0D0D0"
                     }
                 ],
 
-                margin: [
-                    0,
-                    0,
-                    0,
-                    18
-                ]
+                margin:
+                    [
+                        0,
+                        0,
+                        0,
+                        18
+                    ]
             },
+
 
             billTo,
 
+
             {
                 table: {
-                    headerRows: 1,
+
+                    headerRows:
+                        1,
 
                     widths: [
                         "*",
@@ -1405,6 +2172,7 @@ function buildInvoiceDocDefinition({
                     body:
                         tableBody
                 },
+
 
                 layout: {
 
@@ -1423,7 +2191,8 @@ function buildInvoiceDocDefinition({
                         () => 0,
 
                     hLineColor:
-                        () => "#333333",
+                        () =>
+                            "#333333",
 
                     paddingLeft:
                         (i) =>
@@ -1451,8 +2220,10 @@ function buildInvoiceDocDefinition({
                 }
             },
 
+
             totals
         ],
+
 
         defaultStyle: {
 
@@ -1466,148 +2237,214 @@ function buildInvoiceDocDefinition({
                 "#222222"
         },
 
+
         styles: {
 
             companyName: {
+
                 font:
                     "ValleySansMedium",
+
                 fontSize:
                     16,
-                margin: [
-                    0,
-                    0,
-                    0,
-                    5
-                ]
+
+                margin:
+                    [
+                        0,
+                        0,
+                        0,
+                        5
+                    ]
             },
 
+
             companyInfo: {
+
                 font:
                     "ValleySans",
+
                 fontSize:
                     7.5,
+
                 color:
                     "#444444"
             },
 
+
             metaLabel: {
+
                 font:
                     "ValleySansSemiBold",
+
                 fontSize:
                     7,
+
                 color:
                     "#555555",
-                noWrap: true
+
+                noWrap:
+                    true
             },
+
 
             metaValue: {
+
                 font:
                     "ValleySans",
+
                 fontSize:
                     8,
+
                 color:
                     "#333333"
             },
+
 
             metaValueBold: {
+
                 font:
                     "ValleySansBold",
+
                 fontSize:
                     8,
+
                 color:
                     "#333333"
             },
 
+
             billToName: {
+
                 font:
                     "ValleySansMedium",
+
                 fontSize:
                     10,
-                margin: [
-                    0,
-                    3,
-                    0,
-                    2
-                ]
+
+                margin:
+                    [
+                        0,
+                        3,
+                        0,
+                        2
+                    ]
             },
 
+
             billToAddress: {
+
                 font:
                     "ValleySans",
+
                 fontSize:
                     8,
+
                 color:
                     "#555555",
+
                 lineHeight:
                     1.2
             },
 
+
             tableHeader: {
+
                 font:
                     "ValleySansSemiBold",
+
                 fontSize:
                     7,
+
                 color:
                     "#555555",
-                noWrap: true
+
+                noWrap:
+                    true
             },
 
+
             totalLabel: {
+
                 font:
                     "ValleySans",
+
                 fontSize:
                     8.5,
+
                 color:
                     "#555555"
             },
 
+
             totalValue: {
+
                 font:
                     "ValleySans",
+
                 fontSize:
                     8.5,
+
                 color:
                     "#333333",
+
                 alignment:
                     "right"
             },
+
 
             totalLabelStrong: {
+
                 font:
                     "ValleySansSemiBold",
+
                 fontSize:
                     9,
+
                 color:
                     "#333333"
             },
 
+
             totalValueStrong: {
+
                 font:
                     "ValleySansSemiBold",
+
                 fontSize:
                     9,
+
                 color:
                     "#333333",
+
                 alignment:
                     "right"
             },
 
+
             balanceLabel: {
+
                 font:
                     "ValleySansSemiBold",
+
                 fontSize:
                     9,
+
                 color:
                     "#333333"
             },
 
+
             balanceValue: {
+
                 font:
                     "ValleySansSemiBold",
+
                 fontSize:
                     10,
+
                 color:
                     "#333333",
+
                 alignment:
                     "right"
             }
@@ -1617,34 +2454,25 @@ function buildInvoiceDocDefinition({
 
 
 /* =========================================================
-   PDF CACHE / IOS SHARE
+   CURRENT PDF DATA
    ========================================================= */
-
-let preparedInvoicePdf = null;
-let preparedInvoiceSignature = "";
-let pdfPreparationTimer = null;
-let pdfPreparationInProgress = false;
-
-function isIOSBrowser() {
-
-    return /iPad|iPhone|iPod/.test(
-        navigator.userAgent
-    ) &&
-        !window.MSStream;
-}
 
 function getCurrentInvoicePdfData() {
 
     const clientName =
         document
-            .getElementById("client-name")
+            .getElementById(
+                "client-name"
+            )
             .value
             .trim() ||
         "Cash Customer";
 
     const clientAddress =
         document
-            .getElementById("client-address")
+            .getElementById(
+                "client-address"
+            )
             .value
             .trim();
 
@@ -1664,18 +2492,27 @@ function getCurrentInvoicePdfData() {
         parsedDate.toLocaleDateString(
             "en-US",
             {
-                month: "short",
-                day: "numeric",
-                year: "numeric"
+                month:
+                    "short",
+
+                day:
+                    "numeric",
+
+                year:
+                    "numeric"
             }
         );
 
     let subtotal = 0;
 
-    cart.forEach((item) => {
-        subtotal +=
-            item.rate * item.qty;
-    });
+    cart.forEach(
+        (item) => {
+
+            subtotal +=
+                item.rate *
+                item.qty;
+        }
+    );
 
     const discountPct =
         parseFloat(
@@ -1692,32 +2529,96 @@ function getCurrentInvoicePdfData() {
 
     const signature =
         JSON.stringify({
-            invNum,
-            dateString,
-            clientName,
-            clientAddress,
-            items: cart,
-            discountPct,
-            discountAmount,
-            finalTotal
+
+            invNum:
+                invNum,
+
+            dateString:
+                dateString,
+
+            clientName:
+                clientName,
+
+            clientAddress:
+                clientAddress,
+
+            items:
+                cart,
+
+            discountPct:
+                discountPct,
+
+            discountAmount:
+                discountAmount,
+
+            finalTotal:
+                finalTotal
         });
 
     return {
-        invNum,
-        dateString,
-        clientName,
-        clientAddress,
-        subtotal,
-        discountPct,
-        discountAmount,
-        finalTotal,
-        signature
+
+        invNum:
+            invNum,
+
+        dateString:
+            dateString,
+
+        clientName:
+            clientName,
+
+        clientAddress:
+            clientAddress,
+
+        subtotal:
+            subtotal,
+
+        discountPct:
+            discountPct,
+
+        discountAmount:
+            discountAmount,
+
+        finalTotal:
+            finalTotal,
+
+        signature:
+            signature
     };
 }
+
+
+/* =========================================================
+   PDF CACHE
+   ========================================================= */
+
+let preparedInvoicePdf =
+    null;
+
+let preparedInvoiceSignature =
+    "";
+
+let pdfPreparationTimer =
+    null;
+
+let pdfPreparationInProgress =
+    false;
+
+
+function isIOSBrowser() {
+
+    return (
+        /iPad|iPhone|iPod/.test(
+            navigator.userAgent
+        ) &&
+        !window.MSStream
+    );
+}
+
 
 async function buildPreparedInvoicePdf() {
 
     if (!window.pdfMake) {
+
         throw new Error(
             "PDF engine did not load."
         );
@@ -1732,6 +2633,7 @@ async function buildPreparedInvoicePdf() {
 
     const docDefinition =
         buildInvoiceDocDefinition({
+
             invNum:
                 data.invNum,
 
@@ -1771,9 +2673,15 @@ async function buildPreparedInvoicePdf() {
 
                 pdf.getBlob(
                     (result) => {
+
                         if (result) {
-                            resolve(result);
+
+                            resolve(
+                                result
+                            );
+
                         } else {
+
                             reject(
                                 new Error(
                                     "PDF blob generation failed."
@@ -1786,12 +2694,15 @@ async function buildPreparedInvoicePdf() {
         );
 
     return {
+
         file:
             new File(
                 [
                     blob
                 ],
+
                 `varahibio(${data.invNum}).pdf`,
+
                 {
                     type:
                         "application/pdf"
@@ -1803,13 +2714,18 @@ async function buildPreparedInvoicePdf() {
     };
 }
 
+
 async function prepareInvoicePdfCache() {
 
-    if (pdfPreparationInProgress) {
+    if (
+        pdfPreparationInProgress
+    ) {
+
         return;
     }
 
-    pdfPreparationInProgress = true;
+    pdfPreparationInProgress =
+        true;
 
     try {
 
@@ -1831,9 +2747,11 @@ async function prepareInvoicePdfCache() {
 
     } finally {
 
-        pdfPreparationInProgress = false;
+        pdfPreparationInProgress =
+            false;
     }
 }
+
 
 function scheduleInvoicePdfPreparation() {
 
@@ -1844,42 +2762,56 @@ function scheduleInvoicePdfPreparation() {
     pdfPreparationTimer =
         setTimeout(
             () => {
+
                 prepareInvoicePdfCache();
+
             },
             250
         );
 }
 
+
 function watchInvoicePdfInputs() {
 
     [
+
         "client-name",
         "client-address",
         "invoice-date",
         "invoice-number",
         "discount-pct"
-    ].forEach((id) => {
 
-        const element =
-            document.getElementById(id);
+    ].forEach(
+        (id) => {
 
-        if (!element) {
-            return;
+            const element =
+                document.getElementById(
+                    id
+                );
+
+            if (!element) {
+                return;
+            }
+
+            element.addEventListener(
+                "input",
+                scheduleInvoicePdfPreparation
+            );
+
+            element.addEventListener(
+                "change",
+                scheduleInvoicePdfPreparation
+            );
         }
-
-        element.addEventListener(
-            "input",
-            scheduleInvoicePdfPreparation
-        );
-
-        element.addEventListener(
-            "change",
-            scheduleInvoicePdfPreparation
-        );
-    });
+    );
 }
 
 watchInvoicePdfInputs();
+
+
+/* =========================================================
+   IOS NATIVE SHARE
+   ========================================================= */
 
 function sharePreparedInvoicePdf() {
 
@@ -1888,15 +2820,18 @@ function sharePreparedInvoicePdf() {
         !navigator.share ||
         !navigator.canShare
     ) {
+
         return false;
     }
 
     try {
 
         const shareData = {
+
             files: [
                 preparedInvoicePdf
             ],
+
             title:
                 preparedInvoicePdf.name
         };
@@ -1906,6 +2841,7 @@ function sharePreparedInvoicePdf() {
                 shareData
             )
         ) {
+
             return false;
         }
 
@@ -1922,6 +2858,7 @@ function sharePreparedInvoicePdf() {
                     error.name !==
                         "AbortError"
                 ) {
+
                     console.warn(
                         "Native PDF share failed:",
                         error
@@ -1943,20 +2880,30 @@ function sharePreparedInvoicePdf() {
     }
 }
 
-function openPreparedPdfFallback(file) {
+
+function openPreparedPdfFallback(
+    file
+) {
 
     if (!file) {
         return false;
     }
 
     const url =
-        URL.createObjectURL(file);
+        URL.createObjectURL(
+            file
+        );
 
-    window.location.href = url;
+    window.location.href =
+        url;
 
     setTimeout(
         () => {
-            URL.revokeObjectURL(url);
+
+            URL.revokeObjectURL(
+                url
+            );
+
         },
         60000
     );
@@ -1976,6 +2923,7 @@ generateBtn.addEventListener(
         e.preventDefault();
         e.stopPropagation();
 
+
         if (cart.length === 0) {
 
             alert(
@@ -1985,14 +2933,28 @@ generateBtn.addEventListener(
             return;
         }
 
+
         const currentData =
             getCurrentInvoicePdfData();
 
+
+        /*
+         * iOS:
+         *
+         * If the PDF was already prepared before the
+         * tap, invoke navigator.share immediately while
+         * the user activation is still valid.
+         */
+
         if (
+
             isIOSBrowser() &&
+
             preparedInvoicePdf &&
+
             preparedInvoiceSignature ===
                 currentData.signature
+
         ) {
 
             if (
@@ -2004,6 +2966,7 @@ generateBtn.addEventListener(
                         /\d+/
                     );
 
+
                 if (numericMatch) {
 
                     const usedNumber =
@@ -2013,23 +2976,28 @@ generateBtn.addEventListener(
                         );
 
                     setDoc(
+
                         doc(
                             db,
                             "config",
                             "invoiceCounter"
                         ),
+
                         {
                             lastNumber:
                                 usedNumber
                         },
+
                         {
                             merge:
                                 true
                         }
+
                     ).catch(
                         console.error
                     );
                 }
+
 
                 if (
                     saveCheckbox.checked
@@ -2073,25 +3041,36 @@ generateBtn.addEventListener(
                             new Date().toISOString()
                     };
 
+
                     setDoc(
+
                         doc(
                             db,
                             "invoices",
                             currentData.invNum
                         ),
+
                         invoiceRecord
+
                     )
-                        .then(() => {
-                            console.log(
-                                `Invoice ${currentData.invNum} saved to cloud.`
-                            );
-                        })
-                        .catch(console.error);
+                        .then(
+                            () => {
+
+                                console.log(
+                                    `Invoice ${currentData.invNum} saved to cloud.`
+                                );
+                            }
+                        )
+                        .catch(
+                            console.error
+                        );
                 }
+
 
                 return;
             }
         }
+
 
         setButtonLoading(
             generateBtn,
@@ -2099,18 +3078,31 @@ generateBtn.addEventListener(
             "Preparing…"
         );
 
+
         try {
 
             await prepareInvoicePdfCache();
 
+
             const refreshedData =
                 getCurrentInvoicePdfData();
 
+
+            /*
+             * iOS fallback:
+             * If the cache became ready during this click,
+             * share it immediately.
+             */
+
             if (
+
                 isIOSBrowser() &&
+
                 preparedInvoicePdf &&
+
                 preparedInvoiceSignature ===
                     refreshedData.signature
+
             ) {
 
                 if (
@@ -2122,6 +3114,7 @@ generateBtn.addEventListener(
                             /\d+/
                         );
 
+
                     if (numericMatch) {
 
                         const usedNumber =
@@ -2131,23 +3124,28 @@ generateBtn.addEventListener(
                             );
 
                         setDoc(
+
                             doc(
                                 db,
                                 "config",
                                 "invoiceCounter"
                             ),
+
                             {
                                 lastNumber:
                                     usedNumber
                             },
+
                             {
                                 merge:
                                     true
                             }
+
                         ).catch(
                             console.error
                         );
                     }
+
 
                     if (
                         saveCheckbox.checked
@@ -2191,21 +3189,31 @@ generateBtn.addEventListener(
                                 new Date().toISOString()
                         };
 
+
                         setDoc(
+
                             doc(
                                 db,
                                 "invoices",
                                 refreshedData.invNum
                             ),
+
                             invoiceRecord
+
                         )
-                            .then(() => {
-                                console.log(
-                                    `Invoice ${refreshedData.invNum} saved to cloud.`
-                                );
-                            })
-                            .catch(console.error);
+                            .then(
+                                () => {
+
+                                    console.log(
+                                        `Invoice ${refreshedData.invNum} saved to cloud.`
+                                    );
+                                }
+                            )
+                            .catch(
+                                console.error
+                            );
                     }
+
 
                     setButtonLoading(
                         generateBtn,
@@ -2216,10 +3224,19 @@ generateBtn.addEventListener(
                 }
             }
 
+
+            /*
+             * Non-iOS / fallback:
+             * Navigate directly to the generated PDF.
+             */
+
             if (
+
                 preparedInvoicePdf &&
+
                 preparedInvoiceSignature ===
                     refreshedData.signature
+
             ) {
 
                 openPreparedPdfFallback(
@@ -2233,10 +3250,16 @@ generateBtn.addEventListener(
                 );
             }
 
+
+            /*
+             * Update invoice counter.
+             */
+
             const numericMatch =
                 refreshedData.invNum.match(
                     /\d+/
                 );
+
 
             if (numericMatch) {
 
@@ -2247,23 +3270,32 @@ generateBtn.addEventListener(
                     );
 
                 setDoc(
+
                     doc(
                         db,
                         "config",
                         "invoiceCounter"
                     ),
+
                     {
                         lastNumber:
                             usedNumber
                     },
+
                     {
                         merge:
                             true
                     }
+
                 ).catch(
                     console.error
                 );
             }
+
+
+            /*
+             * Save invoice to Firestore if requested.
+             */
 
             if (
                 saveCheckbox.checked
@@ -2307,21 +3339,31 @@ generateBtn.addEventListener(
                         new Date().toISOString()
                 };
 
+
                 setDoc(
+
                     doc(
                         db,
                         "invoices",
                         refreshedData.invNum
                     ),
+
                     invoiceRecord
+
                 )
-                    .then(() => {
-                        console.log(
-                            `Invoice ${refreshedData.invNum} saved to cloud.`
-                        );
-                    })
-                    .catch(console.error);
+                    .then(
+                        () => {
+
+                            console.log(
+                                `Invoice ${refreshedData.invNum} saved to cloud.`
+                            );
+                        }
+                    )
+                    .catch(
+                        console.error
+                    );
             }
+
 
             setButtonLoading(
                 generateBtn,
@@ -2359,12 +3401,15 @@ searchBtn.addEventListener(
         e.preventDefault();
         e.stopPropagation();
 
+
         const queryId =
             searchInput.value
                 .trim()
                 .toUpperCase();
 
-        searchStatusMsg.textContent = "";
+
+        searchStatusMsg.textContent =
+            "";
 
         searchStatusMsg.className =
             "status-msg";
@@ -2372,7 +3417,9 @@ searchBtn.addEventListener(
         viewDetailsBtn.style.display =
             "none";
 
-        searchedInvoiceData = null;
+        searchedInvoiceData =
+            null;
+
 
         if (!queryId) {
 
@@ -2386,14 +3433,17 @@ searchBtn.addEventListener(
             return;
         }
 
+
         searchStatusMsg.textContent =
             "Searching...";
+
 
         setButtonLoading(
             searchBtn,
             true,
             "Searching…"
         );
+
 
         try {
 
@@ -2405,9 +3455,14 @@ searchBtn.addEventListener(
                 );
 
             const invSnap =
-                await getDoc(invRef);
+                await getDoc(
+                    invRef
+                );
 
-            if (invSnap.exists()) {
+
+            if (
+                invSnap.exists()
+            ) {
 
                 searchedInvoiceData =
                     invSnap.data();
@@ -2468,9 +3523,14 @@ viewDetailsBtn.addEventListener(
         e.preventDefault();
         e.stopPropagation();
 
-        if (!searchedInvoiceData) {
+
+        if (
+            !searchedInvoiceData
+        ) {
+
             return;
         }
+
 
         detailInvNum.textContent =
             searchedInvoiceData.invoiceNumber;
@@ -2489,46 +3549,59 @@ viewDetailsBtn.addEventListener(
             searchedInvoiceData.savedBy ||
             "N/A";
 
-        detailItemsList.innerHTML = "";
+
+        detailItemsList.innerHTML =
+            "";
+
 
         (
             searchedInvoiceData.items ||
             []
-        ).forEach((item) => {
+        ).forEach(
+            (item) => {
 
-            const itemTotal =
-                item.rate * item.qty;
+                const itemTotal =
+                    item.rate *
+                    item.qty;
 
-            const div =
-                document.createElement(
-                    "div"
+                const div =
+                    document.createElement(
+                        "div"
+                    );
+
+                div.className =
+                    "cart-item";
+
+                div.innerHTML = `
+
+                    <div class="cart-item-details">
+
+                        <span class="cart-item-title">
+                            ${item.name}
+                        </span>
+
+                        <span class="cart-item-math">
+                            ${item.qty}
+                            x
+                            ${formatINR(item.rate)}
+                            =
+                            ${formatINR(itemTotal)}
+                            (Batch:
+                            ${item.batch || "N/A"},
+                            Mfg:
+                            ${item.mfg || "N/A"})
+                        </span>
+
+                    </div>
+
+                `;
+
+                detailItemsList.appendChild(
+                    div
                 );
+            }
+        );
 
-            div.className =
-                "cart-item";
-
-            div.innerHTML = `
-                <div class="cart-item-details">
-                    <span class="cart-item-title">
-                        ${item.name}
-                    </span>
-
-                    <span class="cart-item-math">
-                        ${item.qty}
-                        x
-                        ${formatINR(item.rate)}
-                        =
-                        ${formatINR(itemTotal)}
-                        (Batch: ${item.batch || "N/A"},
-                        Mfg: ${item.mfg || "N/A"})
-                    </span>
-                </div>
-            `;
-
-            detailItemsList.appendChild(
-                div
-            );
-        });
 
         detailSubtotal.textContent =
             formatINR(
@@ -2536,17 +3609,20 @@ viewDetailsBtn.addEventListener(
                 0
             );
 
+
         detailDiscount.textContent =
             `- ${formatINR(
                 searchedInvoiceData.discountAmount ||
                 0
             )}`;
 
+
         detailTotal.textContent =
             `Total: ${formatINR(
                 searchedInvoiceData.total ||
                 0
             )}`;
+
 
         appScreen.style.display =
             "none";
@@ -2583,7 +3659,9 @@ detailsBackBtn.addEventListener(
 
 setTimeout(
     () => {
+
         scheduleInvoicePdfPreparation();
+
     },
     1000
 );
