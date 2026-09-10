@@ -2,55 +2,45 @@
 @font-face {
     font-family: Brisa Pro;
     src: url(https://cdn.prod.website-files.com/68a5787bba0829184628bd51/68ad7bb9169ac0f55949c7e4_BrisaPro-Regular.woff2) format("woff2");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
+    font-weight: 400; font-style: normal; font-display: swap;
 }
 
 @font-face {
     font-family: Haffer Mono;
     src: url(https://cdn.prod.website-files.com/68a5787bba0829184628bd51/68a5e16300ff1c3e56d220c5_HafferMonoMedium.woff2) format("woff2");
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
+    font-weight: 500; font-style: normal; font-display: swap;
 }
 
 @font-face {
     font-family: Haffer Mono;
     src: url(https://cdn.prod.website-files.com/68a5787bba0829184628bd51/68a5e163329ff81e2107c078_HafferMonoRegular.woff2) format("woff2");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
+    font-weight: 400; font-style: normal; font-display: swap;
 }
 
 @font-face {
     font-family: Haffer XH;
     src: url(https://cdn.prod.website-files.com/68a5787bba0829184628bd51/68a5e1630039e3499e62b7be_HafferXHRegular.woff2) format("woff2");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
+    font-weight: 400; font-style: normal; font-display: swap;
 }
 
 @font-face {
     font-family: Haffer VF;
     src: url(https://cdn.prod.website-files.com/68a5787bba0829184628bd51/68a5df2de5b7c113032b4047_HafferStandardUprights-VF.ttf) format("truetype");
-    font-weight: 100 1000;
-    font-style: normal;
-    font-display: swap;
+    font-weight: 100 1000; font-style: normal; font-display: swap;
 }
 
-/* --- DESIGN TOKENS (iOS system-inspired) --- */
+/* --- DESIGN TOKENS --- */
 :root {
-    --color-bg: #F2F2F7;           /* systemGroupedBackground */
+    --color-bg: #F2F2F7;
     --color-card: #FFFFFF;
-    --color-text: #1C1C1E;         /* label */
-    --color-text-secondary: #6E6E73; /* secondaryLabel */
-    --color-border: #E5E5EA;       /* separator */
-    --color-accent: #D32721;       /* brand red, tuned toward iOS systemRed depth */
+    --color-text: #1C1C1E;
+    --color-text-secondary: #6E6E73;
+    --color-border: #E5E5EA;
+    --color-accent: #D32721;
     --color-accent-pressed: #AD1F1A;
-    --color-neutral-btn: #48484A;  /* iOS systemGray */
-    --color-success: #34C759;      /* systemGreen */
-    --color-blue: #007AFF;         /* systemBlue */
+    --color-neutral-btn: #48484A;
+    --color-success: #34C759;
+    --color-blue: #007AFF;
     --radius-lg: 18px;
     --radius-md: 14px;
     --radius-sm: 10px;
@@ -65,401 +55,146 @@
 body {
     font-family: 'Haffer VF', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     background-color: var(--color-bg);
     color: var(--color-text);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    min-height: 100dvh;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; min-height: 100dvh;
     overscroll-behavior-y: contain;
 }
 
-/* When installed as a standalone app (Add to Home Screen), give the
-   status-bar / notch area proper breathing room instead of letting
-   content run underneath it. */
 @media (display-mode: standalone) {
     body { padding-top: var(--safe-top); }
 }
 
 .screen {
-    width: 100%;
-    max-width: 450px;
-    padding: 20px;
-    padding-bottom: calc(20px + var(--safe-bottom));
+    width: 100%; max-width: 450px;
+    padding: 20px; padding-bottom: calc(20px + var(--safe-bottom));
     box-sizing: border-box;
 }
 
 .login-box {
     background: var(--color-card);
-    padding: 30px;
-    border-radius: var(--radius-lg);
+    padding: 30px; border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    width: 100%;
-    box-sizing: border-box;
+    display: flex; flex-direction: column; gap: 15px;
+    width: 100%; box-sizing: border-box;
 }
 
-h2, h3 {
-    margin-top: 0;
-    color: var(--color-text);
-    letter-spacing: -0.01em;
-}
-
+h2, h3 { margin-top: 0; color: var(--color-text); letter-spacing: -0.01em; }
 h2 { text-align: center; }
 
 .google-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background-color: #ffffff;
-    color: #3c4043;
-    border: 1px solid #dadce0;
-    box-shadow: 0 1px 2px rgba(60,64,67,0.15);
-    font-weight: 600;
-    transition: transform 0.12s ease, background-color 0.12s ease;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background-color: #ffffff; color: #3c4043;
+    border: 1px solid #dadce0; box-shadow: 0 1px 2px rgba(60,64,67,0.15);
+    font-weight: 600; transition: transform 0.12s ease, background-color 0.12s ease;
 }
 
-.google-btn:active {
-    background-color: #f8f9fa;
-    transform: scale(0.98);
-}
+.google-btn:active { background-color: #f8f9fa; transform: scale(0.98); }
+.google-icon { width: 20px; height: 20px; display: block; }
 
-.google-icon {
-    width: 20px;
-    height: 20px;
-    display: block;
-}
-
-.login-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    color: #70757a;
-    font-size: 12px;
-}
-
-.login-divider::before,
-.login-divider::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.login-divider span {
-    padding: 0 10px;
-}
+.login-divider { display: flex; align-items: center; text-align: center; color: #70757a; font-size: 12px; }
+.login-divider::before, .login-divider::after { content: ''; flex: 1; border-bottom: 1px solid #e0e0e0; }
+.login-divider span { padding: 0 10px; }
 
 input, select {
-    padding: 14px 15px;
-    font-size: 16px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    outline: none;
-    background-color: #FAFAFC;
-    width: 100%;
-    box-sizing: border-box;
-    font-family: 'Haffer VF', sans-serif;
-    color: var(--color-text);
+    padding: 14px 15px; font-size: 16px;
+    border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+    outline: none; background-color: #FAFAFC;
+    width: 100%; box-sizing: border-box;
+    font-family: 'Haffer VF', sans-serif; color: var(--color-text);
     transition: border-color 0.15s ease, background-color 0.15s ease;
 }
-
 input::placeholder { color: #A0A0A5; }
-
-input:focus, select:focus {
-    border-color: var(--color-accent);
-    background-color: #ffffff;
-}
+input:focus, select:focus { border-color: var(--color-accent); background-color: #ffffff; }
 
 button {
-    padding: 15px;
-    font-size: 16px;
-    background-color: var(--color-accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-weight: 600;
-    width: 100%;
+    padding: 15px; font-size: 16px;
+    background-color: var(--color-accent); color: white;
+    border: none; border-radius: var(--radius-md);
+    cursor: pointer; font-weight: 600; width: 100%;
     font-family: 'Haffer VF', sans-serif;
-    -webkit-tap-highlight-color: transparent;
     transition: transform 0.1s ease, background-color 0.1s ease, opacity 0.1s ease;
 }
-
 button:active { background-color: var(--color-accent-pressed); transform: scale(0.98); }
+button:disabled { opacity: 0.6; cursor: default; transform: none; }
 
-button:disabled {
-    opacity: 0.6;
-    cursor: default;
-    transform: none;
-}
-
-/* Loading state for any action button: small spinning ring before the label */
-button.is-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
+button.is-loading { display: flex; align-items: center; justify-content: center; gap: 8px; }
 button.is-loading::before {
-    content: "";
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.4);
-    border-top-color: #fff;
-    animation: btn-spin 0.7s linear infinite;
-    flex-shrink: 0;
+    content: ""; width: 15px; height: 15px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+    animation: btn-spin 0.7s linear infinite; flex-shrink: 0;
 }
+@keyframes btn-spin { to { transform: rotate(360deg); } }
 
-@keyframes btn-spin {
-    to { transform: rotate(360deg); }
-}
+.header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: var(--safe-top); }
+.header-user-info { display: flex; flex-direction: column; align-items: flex-start; }
+.header-user-info h2 { margin: 0; text-align: left; font-size: 22px; font-weight: 700; }
+.user-email-badge { font-size: 12px; color: var(--color-text-secondary); margin-top: 3px; word-break: break-all; }
 
-.header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-top: var(--safe-top);
-}
-
-.header-user-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.header-user-info h2 {
-    margin: 0;
-    text-align: left;
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.user-email-badge {
-    font-size: 12px;
-    color: var(--color-text-secondary);
-    margin-top: 3px;
-    word-break: break-all;
-}
-
-.small-btn {
-    padding: 9px 14px;
-    font-size: 14px;
-    font-weight: 600;
-    width: auto;
-    background-color: var(--color-neutral-btn);
-    border-radius: var(--radius-sm);
-}
-
+.small-btn { padding: 9px 14px; font-size: 14px; font-weight: 600; width: auto; background-color: var(--color-neutral-btn); border-radius: var(--radius-sm); }
 .small-btn:active { background-color: #333336; }
 
 .mobile-ui-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    background: var(--color-card);
-    padding: 20px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
+    display: flex; flex-direction: column; gap: 15px;
+    background: var(--color-card); padding: 20px;
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
 }
 
-hr {
-    border: 0;
-    border-top: 1px solid var(--color-border);
-    margin: 10px 0;
-    width: 100%;
-}
-
+hr { border: 0; border-top: 1px solid var(--color-border); margin: 10px 0; width: 100%; }
 .row { display: flex; gap: 10px; }
-
 .align-center { align-items: center; }
-
 .row input { flex: 1; }
 .row button { flex: 2; background-color: var(--color-neutral-btn); margin-top: 0; }
 .row button:active { background-color: #333336; }
 
-.cart-list-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
+.cart-list-container { display: flex; flex-direction: column; gap: 10px; }
 .cart-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--color-bg);
-    padding: 12px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--color-border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--color-bg); padding: 12px;
+    border-radius: var(--radius-sm); border: 1px solid var(--color-border);
 }
-
-.cart-item-details {
-    display: flex;
-    flex-direction: column;
-}
-
+.cart-item-details { display: flex; flex-direction: column; }
 .cart-item-title { font-weight: 600; color: var(--color-text); }
 .cart-item-math { font-size: 13px; color: var(--color-text-secondary); }
 
-.remove-btn {
-    background: none;
-    color: var(--color-accent);
-    border: none;
-    font-size: 22px;
-    line-height: 1;
-    padding: 0 6px 0 10px;
-    width: auto;
-}
-
+.remove-btn { background: none; color: var(--color-accent); border: none; font-size: 22px; line-height: 1; padding: 0 6px 0 10px; width: auto; }
 .remove-btn:active { transform: scale(0.9); background: none; }
 
-.totals-box {
-    background: var(--color-bg);
-    padding: 15px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--color-border);
-    text-align: right;
-}
-
-.totals-box p {
-    margin: 5px 0;
-    color: var(--color-text-secondary);
-    font-size: 14px;
-}
-
+.totals-box { background: var(--color-bg); padding: 15px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); text-align: right; }
+.totals-box p { margin: 5px 0; color: var(--color-text-secondary); font-size: 14px; }
 #cart-total { margin-top: 10px; margin-bottom: 0; }
 
-.save-checkbox-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 5px;
-}
+.save-checkbox-container { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+.save-checkbox-container input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: var(--color-accent); }
+.save-checkbox-container label { font-size: 14px; font-weight: 600; color: var(--color-text); cursor: pointer; }
 
-.save-checkbox-container input[type="checkbox"] {
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-    accent-color: var(--color-accent);
-}
-
-.save-checkbox-container label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text);
-    cursor: pointer;
-}
-
-.search-section {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-top: 5px;
-}
-
-.status-msg {
-    font-size: 13px;
-    margin: 0;
-    text-align: center;
-    font-weight: 500;
-}
-
+.search-section { display: flex; flex-direction: column; gap: 10px; padding-top: 5px; }
+.status-msg { font-size: 13px; margin: 0; text-align: center; font-weight: 500; }
 .status-success { color: var(--color-success); }
 .status-error { color: var(--color-accent); }
+.view-details-btn { background-color: var(--color-blue); margin-top: 5px; }
+.view-details-btn:active { background-color: #0062CC; }
 
-.view-details-btn {
-    background-color: var(--color-blue);
-    margin-top: 5px;
-}
+.details-card { display: flex; flex-direction: column; gap: 8px; background: var(--color-bg); padding: 15px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); }
+.details-row { display: flex; justify-content: space-between; font-size: 14px; }
+.details-label { color: var(--color-text-secondary); }
 
-.view-details-btn:active {
-    background-color: #0062CC;
-}
-
-.details-card {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: var(--color-bg);
-    padding: 15px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--color-border);
-}
-
-.details-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-}
-
-.details-label {
-    color: var(--color-text-secondary);
-}
-
-#error-msg {
-    color: var(--color-accent);
-    text-align: center;
-    display: none;
-    margin: 0;
-    font-size: 14px;
-}
-
-/* Hide print layout on screens */
-#print-area { display: none; }
+#error-msg { color: var(--color-accent); text-align: center; display: none; margin: 0; font-size: 14px; }
 
 /* --- GLOBAL LOADING OVERLAY --- */
 .loader-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    background: rgba(242, 242, 247, 0.85);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-    padding-top: var(--safe-top);
+    position: fixed; inset: 0; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    background: rgba(242, 242, 247, 0.85); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); padding-top: var(--safe-top);
 }
-
-.loader-text {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    letter-spacing: -0.01em;
-}
-
-/* Recreation of the native iOS UIActivityIndicator: 12 blades fading
-   around a circle, one after another. */
-.ios-spinner {
-    position: relative;
-    width: 40px;
-    height: 40px;
-}
-
+.loader-text { margin: 0; font-size: 14px; font-weight: 600; color: var(--color-text-secondary); letter-spacing: -0.01em; }
+.ios-spinner { position: relative; width: 40px; height: 40px; }
 .ios-spinner div {
-    position: absolute;
-    top: 44%;
-    left: 46%;
-    width: 8%;
-    height: 24%;
-    background: var(--color-neutral-btn);
-    border-radius: 4px;
-    transform-origin: center -25%;
-    animation: ios-spinner-fade 1s linear infinite;
+    position: absolute; top: 44%; left: 46%; width: 8%; height: 24%;
+    background: var(--color-neutral-btn); border-radius: 4px;
+    transform-origin: center -25%; animation: ios-spinner-fade 1s linear infinite;
 }
-
 .ios-spinner div:nth-child(1)  { transform: rotate(0deg);   animation-delay: -1.083s; }
 .ios-spinner div:nth-child(2)  { transform: rotate(30deg);  animation-delay: -0.917s; }
 .ios-spinner div:nth-child(3)  { transform: rotate(60deg);  animation-delay: -0.75s; }
@@ -472,145 +207,50 @@ hr {
 .ios-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.583s; }
 .ios-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.417s; }
 .ios-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: -0.25s; }
+@keyframes ios-spinner-fade { 0% { opacity: 1; } 100% { opacity: 0.15; } }
 
-@keyframes ios-spinner-fade {
-    0% { opacity: 1; }
-    100% { opacity: 0.15; }
+/* --- INVOICE DOCUMENT STYLES (Engineered for both Print and PDF Generation) --- */
+#print-area {
+    display: none; width: 100%; max-width: 800px; margin: 0 auto;
+    background: white; color: #333; font-size: 12px; padding: 20mm;
+    box-sizing: border-box; font-family: 'Haffer VF', sans-serif;
 }
+.print-header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
+.print-logo-container { width: 120px !important; max-width: 120px !important; flex-shrink: 0; }
+.print-logo-container img { width: 120px !important; max-width: 120px !important; height: auto !important; display: block; object-fit: contain; }
+.print-company-info h2 { margin: 0 0 10px 0; font-size: 20px; color: #333; }
+.print-company-info p { margin: 3px 0; color: #555; }
+.print-meta { text-align: right; }
+.meta-label { font-size: 10px; font-weight: bold; color: #555; margin: 0 0 2px 0; }
+.meta-value { margin: 0; }
+.print-bill-to { margin-bottom: 30px; }
+.print-bill-to h3 { margin: 5px 0; font-size: 16px; }
+.print-bill-to p { margin: 3px 0; white-space: pre-wrap; }
+.print-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+.print-table th { border-top: 1px solid #333; border-bottom: 1px solid #333; padding: 8px 0; font-size: 10px; color: #555; }
+.print-table td { padding: 12px 0; vertical-align: top; }
+.print-item-meta { font-size: 10px; color: #666; margin-top: 4px; line-height: 1.4; }
+.print-totals-container { display: flex; flex-direction: column; align-items: flex-end; border-top: 1px solid #ddd; padding-top: 15px; }
+.print-total-row { display: flex; justify-content: space-between; width: 300px; padding: 5px 0; }
+.balance-due-row { border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; margin-top: 10px; padding: 10px 0; }
 
-/* --- PRINT STYLES (PDF / Paper) --- */
+/* --- PRINT MEDIA QUERIES --- */
 @media print {
     @page { margin: 0; }
-
-    #global-loader { display: none !important; }
+    #global-loader, .no-print, .screen { display: none !important; }
 
     html, body {
-        background-color: white;
-        margin: 0;
-        padding: 0;
-        /* The on-screen layout makes body a min-height:100vh flexbox to
-           center the login/app card. Left unset here, that forces the
-           printed page to be at least one full viewport tall on top of
-           the invoice content itself, which is what was spilling a
-           near-empty second page on some browsers (Android Chrome). */
+        background-color: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
         display: block !important;
         min-height: 0 !important;
         height: auto !important;
     }
 
-    .screen { display: none !important; }
-    
     #print-area {
-        display: block;
-        width: 100%;
-        color: #333;
-        font-size: 12px;
-        padding: 20mm;
-        box-sizing: border-box;
-        font-family: 'Haffer VF', sans-serif;
-    }
-
-    .print-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 40px;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 20px;
-    }
-
-    /* iOS SVG Fixes */
-    .print-logo-container {
-        width: 120px !important;
-        max-width: 120px !important;
-        flex-shrink: 0;
-    }
-
-    .print-logo-container img {
-        width: 120px !important;
-        max-width: 120px !important;
-        height: auto !important;
-        display: block;
-    }
-
-    .print-company-info h2 {
-        margin: 0 0 10px 0;
-        font-size: 20px;
-        color: #333;
-    }
-
-    .print-company-info p {
-        margin: 3px 0;
-        color: #555;
-    }
-
-    .print-meta { text-align: right; }
-
-    .meta-label {
-        font-size: 10px;
-        font-weight: bold;
-        color: #555;
-        margin: 0 0 2px 0;
-    }
-
-    .meta-value { margin: 0; }
-
-    .print-bill-to { margin-bottom: 30px; }
-    
-    .print-bill-to h3 {
-        margin: 5px 0;
-        font-size: 16px;
-    }
-
-    .print-bill-to p {
-        margin: 3px 0;
-        white-space: pre-wrap;
-    }
-
-    .print-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 30px;
-    }
-
-    .print-table th {
-        border-top: 1px solid #333;
-        border-bottom: 1px solid #333;
-        padding: 8px 0;
-        font-size: 10px;
-        color: #555;
-    }
-
-    .print-table td {
-        padding: 12px 0;
-        vertical-align: top;
-    }
-    
-    .print-item-meta {
-        font-size: 10px;
-        color: #666;
-        margin-top: 4px;
-        line-height: 1.4;
-    }
-
-    .print-totals-container {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        border-top: 1px solid #ddd;
-        padding-top: 15px;
-    }
-
-    .print-total-row {
-        display: flex;
-        justify-content: space-between;
-        width: 300px;
-        padding: 5px 0;
-    }
-
-    .balance-due-row {
-        border-top: 1px solid #ddd;
-        border-bottom: 1px solid #ddd;
-        margin-top: 10px;
-        padding: 10px 0;
+        display: block !important;
+        padding: 20mm !important;
+        max-width: none !important;
     }
 }

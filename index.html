@@ -16,6 +16,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
     <link rel="icon" type="image/png" sizes="64x64" href="img/icons/favicon.png">
 
+    <!-- html2pdf for direct PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -124,6 +127,7 @@
                 <label for="save-invoice-checkbox">Save Invoice to Cloud?</label>
             </div>
 
+            <!-- Primary Generate Button -->
             <button id="generate-btn" class="generate-btn" type="button">Generate Invoice</button>
 
             <hr>
@@ -187,7 +191,7 @@
     <div id="print-area">
         <div class="print-header">
             <div class="print-logo-container">
-                <img id="print-logo-img" src="img/Logo.svg" alt="Varahi Biologicals Logo" width="226" height="245" style="width: 120px; height: auto;">
+                <img id="print-logo-img" src="img/Logo.svg" alt="Varahi Biologicals Logo">
             </div>
             <div class="print-company-info">
                 <h2>Varahi Biologicals</h2>

@@ -27,17 +27,14 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Enable Local Persistence (Session persists across refreshes)
 setPersistence(auth, browserLocalPersistence).catch(console.error);
 
-// Cart, Inactivity & Search Cache
 let cart = [];
 let inactivityTimer;
 let currentAuthenticatedUser = null;
 let searchedInvoiceData = null;
-const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutes
+const INACTIVITY_LIMIT = 5 * 60 * 1000;
 
-// DOM Elements
 const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
 const detailsScreen = document.getElementById('details-screen');
@@ -45,7 +42,6 @@ const deniedScreen = document.getElementById('denied-screen');
 const deniedEmailText = document.getElementById('denied-email-text');
 const deniedBackBtn = document.getElementById('denied-back-btn');
 const userBadge = document.getElementById('user-badge');
-
 const globalLoader = document.getElementById('global-loader');
 const loaderText = document.getElementById('loader-text');
 
@@ -53,14 +49,8 @@ function showLoader(text) {
     loaderText.textContent = text || 'Loading…';
     globalLoader.style.display = 'flex';
 }
+function hideLoader() { globalLoader.style.display = 'none'; }
 
-function hideLoader() {
-    globalLoader.style.display = 'none';
-}
-
-// True only while we're actively in the middle of a sign-in attempt the
-// user just initiated — guards against showing the loader on the app's
-// very first, silent auth check when the page loads with no user.
 let signInInProgress = false;
 
 const productSelect = document.getElementById('product-select');
@@ -71,14 +61,11 @@ const cartListUI = document.getElementById('cart-list');
 const dateInput = document.getElementById('invoice-date');
 const invoiceNumInput = document.getElementById('invoice-number');
 const saveCheckbox = document.getElementById('save-invoice-checkbox');
-
 const searchInput = document.getElementById('search-invoice-input');
 const searchBtn = document.getElementById('search-invoice-btn');
 const searchStatusMsg = document.getElementById('search-status-msg');
 const viewDetailsBtn = document.getElementById('view-details-btn');
 const detailsBackBtn = document.getElementById('details-back-btn');
-
-// Details Screen Elements
 const detailInvNum = document.getElementById('detail-inv-num');
 const detailDate = document.getElementById('detail-date');
 const detailClientName = document.getElementById('detail-client-name');
@@ -89,22 +76,14 @@ const detailSubtotal = document.getElementById('detail-subtotal');
 const detailDiscount = document.getElementById('detail-discount');
 const detailTotal = document.getElementById('detail-total');
 
-// Set default date to today
-const today = new Date();
-dateInput.value = today.toISOString().split('T')[0];
+dateInput.value = new Date().toISOString().split('T')[0];
 
-// Preload the print logo so it's already cached & decoded before the
-// user ever taps "Generate Invoice". On iOS Safari, printing an image
-// that hasn't finished loading/decoding yet can cause window.print()
-// to be dropped or delayed, and can cause the image to render at the
-// wrong size.
 const printLogoImg = document.getElementById('print-logo-img');
 if (printLogoImg && !printLogoImg.complete) {
     const preload = new Image();
     preload.src = printLogoImg.src;
 }
 
-// Authorization Verification
 async function isUserAuthorized(email) {
     if (!email) return false;
     try {
@@ -117,7 +96,6 @@ async function isUserAuthorized(email) {
     }
 }
 
-// Auth Listener
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         if (signInInProgress) showLoader('Checking your access…');
@@ -152,9 +130,7 @@ onAuthStateChanged(auth, async (user) => {
         }
     } else {
         currentAuthenticatedUser = null;
-        if (deniedScreen.style.display !== 'block') {
-            loginScreen.style.display = 'flex';
-        }
+        if (deniedScreen.style.display !== 'block') loginScreen.style.display = 'flex';
         appScreen.style.display = 'none';
         detailsScreen.style.display = 'none';
         userBadge.textContent = "";
@@ -165,108 +141,68 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Denied Screen Handler
 deniedBackBtn.addEventListener('click', () => {
     deniedScreen.style.display = 'none';
     loginScreen.style.display = 'flex';
 });
 
-// Inactivity Watcher
 function resetInactivityTimer() {
     clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(() => {
-        signOut(auth);
-    }, INACTIVITY_LIMIT);
+    inactivityTimer = setTimeout(() => { signOut(auth); }, INACTIVITY_LIMIT);
 }
-
 function setupActivityListeners() {
-    window.addEventListener('mousemove', resetInactivityTimer);
-    window.addEventListener('mousedown', resetInactivityTimer);
-    window.addEventListener('keypress', resetInactivityTimer);
-    window.addEventListener('touchstart', resetInactivityTimer);
-    window.addEventListener('scroll', resetInactivityTimer);
+    ['mousemove', 'mousedown', 'keypress', 'touchstart', 'scroll'].forEach(e => 
+        window.addEventListener(e, resetInactivityTimer)
+    );
 }
-
 function removeActivityListeners() {
-    window.removeEventListener('mousemove', resetInactivityTimer);
-    window.removeEventListener('mousedown', resetInactivityTimer);
-    window.removeEventListener('keypress', resetInactivityTimer);
-    window.removeEventListener('touchstart', resetInactivityTimer);
-    window.removeEventListener('scroll', resetInactivityTimer);
+    ['mousemove', 'mousedown', 'keypress', 'touchstart', 'scroll'].forEach(e => 
+        window.removeEventListener(e, resetInactivityTimer)
+    );
 }
+function startInactivityTimer() { setupActivityListeners(); resetInactivityTimer(); }
 
-function startInactivityTimer() {
-    setupActivityListeners();
-    resetInactivityTimer();
-}
-
-// Google Sign-In (Reverted to Popup)
 document.getElementById('google-login-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    signInInProgress = true;
-    showLoader('Signing in…');
+    e.preventDefault(); e.stopPropagation();
+    signInInProgress = true; showLoader('Signing in…');
     signInWithPopup(auth, googleProvider)
-        .then(() => {
-            document.getElementById('error-msg').style.display = 'none';
-            // Loader stays up — onAuthStateChanged takes over from here
-            // and hides it once the authorized workspace is ready.
-        })
+        .then(() => { document.getElementById('error-msg').style.display = 'none'; })
         .catch((error) => {
-            signInInProgress = false;
-            hideLoader();
+            signInInProgress = false; hideLoader();
             const errorMsg = document.getElementById('error-msg');
             errorMsg.style.display = 'block';
             errorMsg.textContent = error.message || "Google sign-in failed.";
         });
 });
 
-// Email/Password Login
 document.getElementById('login-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    signInInProgress = true;
-    showLoader('Signing in…');
+    e.preventDefault(); e.stopPropagation();
+    signInInProgress = true; showLoader('Signing in…');
     signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
-        .then(() => {
-            document.getElementById('error-msg').style.display = 'none';
-            // Loader stays up — onAuthStateChanged hides it once ready.
-        })
+        .then(() => { document.getElementById('error-msg').style.display = 'none'; })
         .catch(() => {
-            signInInProgress = false;
-            hideLoader();
+            signInInProgress = false; hideLoader();
             const errorMsg = document.getElementById('error-msg');
             errorMsg.style.display = 'block';
             errorMsg.textContent = "Incorrect email or password.";
         });
 });
 
-// Logout
 document.getElementById('logout-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    showLoader('Signing out…');
-    signOut(auth).finally(hideLoader);
+    e.preventDefault(); e.stopPropagation();
+    showLoader('Signing out…'); signOut(auth).finally(hideLoader);
 });
 
-// Invoice Number Auto-Sequence
 async function loadInvoiceConfig() {
     try {
         const counterRef = doc(db, "config", "invoiceCounter");
         const docSnap = await getDoc(counterRef);
         let nextNum = 1;
-        
-        if (docSnap.exists()) {
-            nextNum = docSnap.data().lastNumber + 1;
-        }
-        
+        if (docSnap.exists()) nextNum = docSnap.data().lastNumber + 1;
         invoiceNumInput.value = "INV" + String(nextNum).padStart(4, '0');
-    } catch (error) {
-        console.error("Error loading invoice counter:", error);
-    }
+    } catch (error) { console.error("Error loading invoice counter:", error); }
 }
 
-// Fetch Products
 async function loadProducts() {
     productSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
     try {
@@ -279,53 +215,31 @@ async function loadProducts() {
             option.textContent = `${product.name} - ₹${product.rate}`;
             productSelect.appendChild(option);
         });
-    } catch (error) {
-        productSelect.innerHTML = '<option value="" disabled selected>Error loading products</option>';
-    }
+    } catch (error) { productSelect.innerHTML = '<option value="" disabled selected>Error loading products</option>'; }
 }
 
 function formatINR(number) {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(number);
 }
 
-// Add Item
 document.getElementById('add-item-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!productSelect.value) {
-        alert("Please select a product first.");
-        return;
-    }
+    e.preventDefault(); e.stopPropagation();
+    if (!productSelect.value) { alert("Please select a product first."); return; }
     
     const productData = JSON.parse(productSelect.value);
     const qty = parseInt(document.getElementById('product-qty').value);
     const batch = batchInput.value.trim() || "As Per Pack";
     const mfg = mfgInput.value.trim() || "As Per Pack";
-    
     if (qty < 1 || isNaN(qty)) return;
 
     const existingItem = cart.find(item => item.id === productData.id && item.batch === batch);
-    if (existingItem) {
-        existingItem.qty += qty;
-    } else {
-        cart.push({
-            ...productData,
-            qty: qty,
-            batch: batch,
-            mfg: mfg
-        });
-    }
+    if (existingItem) existingItem.qty += qty;
+    else cart.push({ ...productData, qty: qty, batch: batch, mfg: mfg });
 
-    productSelect.value = "";
-    batchInput.value = "";
-    mfgInput.value = "";
-    document.getElementById('product-qty').value = "1";
-    
+    productSelect.value = ""; batchInput.value = ""; mfgInput.value = ""; document.getElementById('product-qty').value = "1";
     updateCartUI();
 });
 
-// Update Cart Display
 function updateCartUI() {
     cartListUI.innerHTML = "";
     let subtotal = 0;
@@ -337,7 +251,6 @@ function updateCartUI() {
     cart.forEach((item, index) => {
         const itemTotal = item.rate * item.qty;
         subtotal += itemTotal;
-
         const li = document.createElement('div');
         li.className = 'cart-item';
         li.innerHTML = `
@@ -359,55 +272,50 @@ function updateCartUI() {
     document.getElementById('cart-total').textContent = `Total: ${formatINR(finalTotal)}`;
 }
 
-// Reusable button loading-state helper (used anywhere a tap kicks off
-// work the user should get instant feedback on).
 function setButtonLoading(btn, loading, loadingText) {
     if (!btn) return;
     if (loading) {
-        if (btn.dataset.originalText === undefined) {
-            btn.dataset.originalText = btn.textContent;
-        }
+        if (btn.dataset.originalText === undefined) btn.dataset.originalText = btn.textContent;
         btn.textContent = loadingText || 'Please wait…';
         btn.disabled = true;
         btn.classList.add('is-loading');
     } else {
-        if (btn.dataset.originalText !== undefined) {
-            btn.textContent = btn.dataset.originalText;
-        }
+        if (btn.dataset.originalText !== undefined) btn.textContent = btn.dataset.originalText;
         btn.disabled = false;
         btn.classList.remove('is-loading');
     }
 }
 
 discountInput.addEventListener('input', updateCartUI);
+window.removeItem = function(index) { cart.splice(index, 1); updateCartUI(); }
 
-window.removeItem = function(index) {
-    cart.splice(index, 1);
-    updateCartUI();
-}
-
-// Generate & Print Invoice
 const generateBtn = document.getElementById('generate-btn');
-generateBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (cart.length === 0) {
-        alert("Cannot generate an empty invoice. Add items to the bill.");
-        return;
+
+generateBtn.addEventListener('click', async (e) => {
+    e.preventDefault(); e.stopPropagation();
+    if (cart.length === 0) { alert("Cannot generate an empty invoice. Add items to the bill."); return; }
+
+    // IMPORTANT FOR iOS SAFARI: Open a blank window synchronously inside the click handler. 
+    // If we wait for the PDF to generate before opening the window, Safari blocks it as a popup.
+    const pdfWindow = window.open('', '_blank');
+    if (pdfWindow) {
+        pdfWindow.document.write(`
+            <html>
+                <head><title>Generating Invoice...</title></head>
+                <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #F2F2F7; color: #6E6E73;">
+                    <h2>Generating PDF...</h2>
+                </body>
+            </html>
+        `);
     }
 
-    // Give instant feedback the tap registered. This has to be set
-    // *before* window.print() below, and window.print() itself must
-    // still fire perfectly synchronously afterwards — see note there.
     setButtonLoading(generateBtn, true, 'Preparing…');
 
     const clientName = document.getElementById('client-name').value || "Cash Customer";
     const clientAddress = document.getElementById('client-address').value || "";
     const invNum = invoiceNumInput.value.trim() || "INV0001";
     
-    const rawDate = dateInput.value;
-    const parsedDate = new Date(rawDate);
+    const parsedDate = new Date(dateInput.value);
     const dateString = parsedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
     document.getElementById('print-inv-num').textContent = invNum;
@@ -415,25 +323,20 @@ generateBtn.addEventListener('click', (e) => {
     document.getElementById('print-client-name').textContent = clientName;
     document.getElementById('print-client-address').textContent = clientAddress;
 
-    // Fire and Forget: Update Counter in Background
     const numericMatch = invNum.match(/\d+/);
     if (numericMatch) {
-        const usedNumber = parseInt(numericMatch[0], 10);
-        setDoc(doc(db, "config", "invoiceCounter"), { lastNumber: usedNumber }, { merge: true }).catch(console.error);
+        setDoc(doc(db, "config", "invoiceCounter"), { lastNumber: parseInt(numericMatch[0], 10) }, { merge: true }).catch(console.error);
     }
 
     const tbody = document.getElementById('print-table-body');
     tbody.innerHTML = "";
-    
     let subtotal = 0;
 
     cart.forEach(item => {
         const itemTotal = item.rate * item.qty;
         subtotal += itemTotal;
-
-        const tr = document.createElement('tr');
         const categoryTag = item.category ? `Category: ${item.category}<br>` : "";
-        
+        const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="text-align: left;">
                 <strong style="color: #333;">${item.name}</strong>
@@ -456,7 +359,6 @@ generateBtn.addEventListener('click', (e) => {
     const finalTotal = subtotal - discountAmount;
 
     document.getElementById('print-subtotal').textContent = formatINR(subtotal);
-    
     const printDiscountRow = document.getElementById('print-discount-row');
     if (discountAmount > 0) {
         printDiscountRow.style.display = 'flex';
@@ -469,7 +371,6 @@ generateBtn.addEventListener('click', (e) => {
     document.getElementById('print-balance-top').textContent = formatINR(finalTotal).replace('₹', '');
     document.getElementById('print-balance-bottom').textContent = formatINR(finalTotal).replace('₹', '');
 
-    // Fire and Forget: Save to Cloud if requested
     if (saveCheckbox.checked) {
         const invoiceRecord = {
             invoiceNumber: invNum,
@@ -484,57 +385,63 @@ generateBtn.addEventListener('click', (e) => {
             savedBy: currentAuthenticatedUser ? currentAuthenticatedUser.email : 'System',
             createdAt: new Date().toISOString()
         };
-        setDoc(doc(db, "invoices", invNum), invoiceRecord).then(() => {
-            console.log(`Invoice ${invNum} saved to cloud.`);
-        }).catch(console.error);
+        setDoc(doc(db, "invoices", invNum), invoiceRecord).catch(console.error);
     }
 
-    // Call print() synchronously, in the same tick as the click.
-    // NOTE: iOS Safari requires window.print() to run inside the direct,
-    // unbroken call stack of the user's tap. Any delay — even a
-    // requestAnimationFrame or setTimeout(0) — makes iOS treat it as an
-    // "automatic" print, which it silently defers to the next real user
-    // gesture and then flags with a "This website has been blocked from
-    // automatically printing" prompt. That's what was happening before:
-    // the Logout button appeared to trigger printing because it was the
-    // next tap iOS trusted enough to flush the pending request through.
-    // The real fix is to make sure nothing async stands between the tap
-    // and this call — the print logo is preloaded (see top of file) and
-    // served locally specifically so this can stay synchronous.
-    const originalTitle = document.title;
-    document.title = `varahi - ${invNum}`;
+    const printArea = document.getElementById('print-area');
+    
+    // Temporarily position the element off-screen so the library can capture it visually
+    const originalDisplay = printArea.style.display;
+    const originalPosition = printArea.style.position;
+    const originalLeft = printArea.style.left;
 
-    window.print();
+    printArea.style.display = 'block';
+    printArea.style.position = 'absolute';
+    printArea.style.left = '-9999px';
 
-    setTimeout(() => {
-        document.title = originalTitle;
+    const opt = {
+        margin:       0.2,
+        filename:     `Varahi_Invoice_${invNum}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    
+    try {
+        const pdfBlob = await html2pdf().set(opt).from(printArea).output('blob');
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        
+        // Pass the generated PDF blob to the synchronously opened tab
+        if (pdfWindow) {
+            pdfWindow.location.href = blobUrl;
+        } else {
+            // Fallback if the user has strict popups turned on
+            window.location.href = blobUrl;
+        }
+    } catch (error) {
+        console.error('PDF generation failed:', error);
+        alert('An error occurred while generating the PDF.');
+        if (pdfWindow) pdfWindow.close();
+    } finally {
+        printArea.style.display = originalDisplay;
+        printArea.style.position = originalPosition;
+        printArea.style.left = originalLeft;
         setButtonLoading(generateBtn, false);
-    }, 600);
+    }
 });
 
-// Search Saved Invoice
 searchBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+    e.preventDefault(); e.stopPropagation();
     const queryId = searchInput.value.trim().toUpperCase();
-    searchStatusMsg.textContent = "";
-    searchStatusMsg.className = "status-msg";
-    viewDetailsBtn.style.display = "none";
-    searchedInvoiceData = null;
+    searchStatusMsg.textContent = ""; searchStatusMsg.className = "status-msg";
+    viewDetailsBtn.style.display = "none"; searchedInvoiceData = null;
 
-    if (!queryId) {
-        searchStatusMsg.textContent = "Please enter an invoice number.";
-        searchStatusMsg.classList.add("status-error");
-        return;
-    }
+    if (!queryId) { searchStatusMsg.textContent = "Please enter an invoice number."; searchStatusMsg.classList.add("status-error"); return; }
 
-    searchStatusMsg.textContent = "Searching...";
     setButtonLoading(searchBtn, true, 'Searching…');
     try {
         const invRef = doc(db, "invoices", queryId);
         const invSnap = await getDoc(invRef);
-
         if (invSnap.exists()) {
             searchedInvoiceData = invSnap.data();
             searchStatusMsg.textContent = `Invoice ${queryId} found!`;
@@ -548,16 +455,11 @@ searchBtn.addEventListener('click', async (e) => {
         console.error("Error searching invoice:", err);
         searchStatusMsg.textContent = "Error fetching invoice.";
         searchStatusMsg.classList.add("status-error");
-    } finally {
-        setButtonLoading(searchBtn, false);
-    }
+    } finally { setButtonLoading(searchBtn, false); }
 });
 
-// View Details Screen
 viewDetailsBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+    e.preventDefault(); e.stopPropagation();
     if (!searchedInvoiceData) return;
 
     detailInvNum.textContent = searchedInvoiceData.invoiceNumber;
@@ -584,14 +486,10 @@ viewDetailsBtn.addEventListener('click', (e) => {
     detailDiscount.textContent = `- ${formatINR(searchedInvoiceData.discountAmount || 0)}`;
     detailTotal.textContent = `Total: ${formatINR(searchedInvoiceData.total || 0)}`;
 
-    appScreen.style.display = "none";
-    detailsScreen.style.display = "block";
+    appScreen.style.display = "none"; detailsScreen.style.display = "block";
 });
 
-// Return to Invoice Generator Screen
 detailsBackBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    detailsScreen.style.display = "none";
-    appScreen.style.display = "block";
+    e.preventDefault(); e.stopPropagation();
+    detailsScreen.style.display = "none"; appScreen.style.display = "block";
 });
