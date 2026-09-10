@@ -209,35 +209,14 @@ hr { border: 0; border-top: 1px solid var(--color-border); margin: 10px 0; width
 .ios-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: -0.25s; }
 @keyframes ios-spinner-fade { 0% { opacity: 1; } 100% { opacity: 0.15; } }
 
-/* --- INVOICE DOCUMENT STYLES (Engineered for both Print and PDF Generation) --- */
-#print-area {
-    display: none; width: 100%; max-width: 800px; margin: 0 auto;
-    background: white; color: #333; font-size: 12px; padding: 20mm;
-    box-sizing: border-box; font-family: 'Haffer VF', sans-serif;
-}
-.print-header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
-.print-logo-container { width: 120px !important; max-width: 120px !important; flex-shrink: 0; }
-.print-logo-container img { width: 120px !important; max-width: 120px !important; height: auto !important; display: block; object-fit: contain; }
-.print-company-info h2 { margin: 0 0 10px 0; font-size: 20px; color: #333; }
-.print-company-info p { margin: 3px 0; color: #555; }
-.print-meta { text-align: right; }
-.meta-label { font-size: 10px; font-weight: bold; color: #555; margin: 0 0 2px 0; }
-.meta-value { margin: 0; }
-.print-bill-to { margin-bottom: 30px; }
-.print-bill-to h3 { margin: 5px 0; font-size: 16px; }
-.print-bill-to p { margin: 3px 0; white-space: pre-wrap; }
-.print-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-.print-table th { border-top: 1px solid #333; border-bottom: 1px solid #333; padding: 8px 0; font-size: 10px; color: #555; }
-.print-table td { padding: 12px 0; vertical-align: top; }
-.print-item-meta { font-size: 10px; color: #666; margin-top: 4px; line-height: 1.4; }
-.print-totals-container { display: flex; flex-direction: column; align-items: flex-end; border-top: 1px solid #ddd; padding-top: 15px; }
-.print-total-row { display: flex; justify-content: space-between; width: 300px; padding: 5px 0; }
-.balance-due-row { border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; margin-top: 10px; padding: 10px 0; }
+/* Hide print layout on screens */
+#print-area { display: none; }
 
-/* --- PRINT MEDIA QUERIES --- */
+/* --- PRINT STYLES (PDF / Paper) --- */
 @media print {
     @page { margin: 0; }
-    #global-loader, .no-print, .screen { display: none !important; }
+
+    #global-loader { display: none !important; }
 
     html, body {
         background-color: white !important;
@@ -248,9 +227,119 @@ hr { border: 0; border-top: 1px solid var(--color-border); margin: 10px 0; width
         height: auto !important;
     }
 
+    .screen { display: none !important; }
+    
     #print-area {
         display: block !important;
+        width: 100% !important;
+        color: #333 !important;
+        font-size: 12px !important;
         padding: 20mm !important;
-        max-width: none !important;
+        box-sizing: border-box !important;
+        font-family: 'Haffer VF', sans-serif !important;
+    }
+
+    .print-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        margin-bottom: 40px !important;
+        border-bottom: 1px solid #ddd !important;
+        padding-bottom: 20px !important;
+    }
+
+    /* iOS SVG Logo Fixes */
+    .print-logo-container {
+        width: 120px !important;
+        max-width: 120px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .print-logo-container img {
+        width: 120px !important;
+        max-width: 120px !important;
+        height: auto !important;
+        display: block !important;
+    }
+
+    .print-company-info h2 {
+        margin: 0 0 10px 0 !important;
+        font-size: 20px !important;
+        color: #333 !important;
+    }
+
+    .print-company-info p {
+        margin: 3px 0 !important;
+        color: #555 !important;
+    }
+
+    .print-meta { text-align: right !important; }
+
+    .meta-label {
+        font-size: 10px !important;
+        font-weight: bold !important;
+        color: #555 !important;
+        margin: 0 0 2px 0 !important;
+    }
+
+    .meta-value { margin: 0 !important; }
+
+    .print-bill-to { margin-bottom: 30px !important; }
+    
+    .print-bill-to h3 {
+        margin: 5px 0 !important;
+        font-size: 16px !important;
+    }
+
+    .print-bill-to p {
+        margin: 3px 0 !important;
+        white-space: pre-wrap !important;
+    }
+
+    .print-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 30px !important;
+    }
+
+    .print-table th {
+        border-top: 1px solid #333 !important;
+        border-bottom: 1px solid #333 !important;
+        padding: 8px 0 !important;
+        font-size: 10px !important;
+        color: #555 !important;
+    }
+
+    .print-table td {
+        padding: 12px 0 !important;
+        vertical-align: top !important;
+    }
+    
+    .print-item-meta {
+        font-size: 10px !important;
+        color: #666 !important;
+        margin-top: 4px !important;
+        line-height: 1.4 !important;
+    }
+
+    .print-totals-container {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        border-top: 1px solid #ddd !important;
+        padding-top: 15px !important;
+    }
+
+    .print-total-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        width: 300px !important;
+        padding: 5px 0 !important;
+    }
+
+    .balance-due-row {
+        border-top: 1px solid #ddd !important;
+        border-bottom: 1px solid #ddd !important;
+        margin-top: 10px !important;
+        padding: 10px 0 !important;
     }
 }

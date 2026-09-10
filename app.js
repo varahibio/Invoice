@@ -291,25 +291,9 @@ window.removeItem = function(index) { cart.splice(index, 1); updateCartUI(); }
 
 const generateBtn = document.getElementById('generate-btn');
 
-generateBtn.addEventListener('click', async (e) => {
+generateBtn.addEventListener('click', (e) => {
     e.preventDefault(); e.stopPropagation();
     if (cart.length === 0) { alert("Cannot generate an empty invoice. Add items to the bill."); return; }
-
-    // IMPORTANT FOR iOS SAFARI: Open a blank window synchronously inside the click handler. 
-    // If we wait for the PDF to generate before opening the window, Safari blocks it as a popup.
-    const pdfWindow = window.open('', '_blank');
-    if (pdfWindow) {
-        pdfWindow.document.write(`
-            <html>
-                <head><title>Generating Invoice...</title></head>
-                <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #F2F2F7; color: #6E6E73;">
-                    <h2>Generating PDF...</h2>
-                </body>
-            </html>
-        `);
-    }
-
-    setButtonLoading(generateBtn, true, 'Preparing…');
 
     const clientName = document.getElementById('client-name').value || "Cash Customer";
     const clientAddress = document.getElementById('client-address').value || "";
@@ -388,46 +372,17 @@ generateBtn.addEventListener('click', async (e) => {
         setDoc(doc(db, "invoices", invNum), invoiceRecord).catch(console.error);
     }
 
-    const printArea = document.getElementById('print-area');
-    
-    // Temporarily position the element off-screen so the library can capture it visually
-    const originalDisplay = printArea.style.display;
-    const originalPosition = printArea.style.position;
-    const originalLeft = printArea.style.left;
+    // Hijack document title so browsers name the saved PDF/Print file "Varahi_Invoice_INVXXXX.pdf" automatically
+    const originalTitle = document.title;
+    document.title = `Varahi_Invoice_${invNum}`;
 
-    printArea.style.display = 'block';
-    printArea.style.position = 'absolute';
-    printArea.style.left = '-9999px';
+    // Trigger native browser print synchronously in the user click stack
+    window.print();
 
-    const opt = {
-        margin:       0.2,
-        filename:     `Varahi_Invoice_${invNum}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-    
-    try {
-        const pdfBlob = await html2pdf().set(opt).from(printArea).output('blob');
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        
-        // Pass the generated PDF blob to the synchronously opened tab
-        if (pdfWindow) {
-            pdfWindow.location.href = blobUrl;
-        } else {
-            // Fallback if the user has strict popups turned on
-            window.location.href = blobUrl;
-        }
-    } catch (error) {
-        console.error('PDF generation failed:', error);
-        alert('An error occurred while generating the PDF.');
-        if (pdfWindow) pdfWindow.close();
-    } finally {
-        printArea.style.display = originalDisplay;
-        printArea.style.position = originalPosition;
-        printArea.style.left = originalLeft;
-        setButtonLoading(generateBtn, false);
-    }
+    // Revert title after print dialog closes
+    setTimeout(() => {
+        document.title = originalTitle;
+    }, 600);
 });
 
 searchBtn.addEventListener('click', async (e) => {
