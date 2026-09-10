@@ -2,7 +2,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { 
     getAuth, 
     signInWithEmailAndPassword, 
-    signInWithPopup, 
+    signInWithRedirect, 
+    getRedirectResult,
     GoogleAuthProvider, 
     signOut, 
     onAuthStateChanged,
@@ -29,6 +30,15 @@ const googleProvider = new GoogleAuthProvider();
 
 // Enable Local Persistence (Session persists across refreshes)
 setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+// Catch mobile redirect login errors
+getRedirectResult(auth).catch((error) => {
+    const errorMsg = document.getElementById('error-msg');
+    if (errorMsg) {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = error.message || "Google sign-in failed.";
+    }
+});
 
 // Cart, Inactivity & Search Cache
 let cart = [];
@@ -164,19 +174,11 @@ function startInactivityTimer() {
     resetInactivityTimer();
 }
 
-// Google Sign-In
+// Google Sign-In (Switched to Redirect for iOS Safari compatibility)
 document.getElementById('google-login-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    signInWithPopup(auth, googleProvider)
-        .then(() => {
-            document.getElementById('error-msg').style.display = 'none';
-        })
-        .catch((error) => {
-            const errorMsg = document.getElementById('error-msg');
-            errorMsg.style.display = 'block';
-            errorMsg.textContent = error.message || "Google sign-in failed.";
-        });
+    signInWithRedirect(auth, googleProvider);
 });
 
 // Email/Password Login
@@ -318,7 +320,7 @@ window.removeItem = function(index) {
     updateCartUI();
 }
 
-// Generate & Print Invoice (Now Synchronous for iOS)
+// Generate & Print Invoice
 document.getElementById('generate-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -341,7 +343,7 @@ document.getElementById('generate-btn').addEventListener('click', (e) => {
     document.getElementById('print-client-name').textContent = clientName;
     document.getElementById('print-client-address').textContent = clientAddress;
 
-    // Fire and Forget: Update Counter in Background (Removed async/await)
+    // Fire and Forget: Update Counter in Background
     const numericMatch = invNum.match(/\d+/);
     if (numericMatch) {
         const usedNumber = parseInt(numericMatch[0], 10);
@@ -395,7 +397,7 @@ document.getElementById('generate-btn').addEventListener('click', (e) => {
     document.getElementById('print-balance-top').textContent = formatINR(finalTotal).replace('₹', '');
     document.getElementById('print-balance-bottom').textContent = formatINR(finalTotal).replace('₹', '');
 
-    // Fire and Forget: Save to Cloud if requested (Removed async/await)
+    // Fire and Forget: Save to Cloud if requested
     if (saveCheckbox.checked) {
         const invoiceRecord = {
             invoiceNumber: invNum,
