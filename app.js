@@ -104,6 +104,23 @@ if (printLogoImg && !printLogoImg.complete) {
     preload.src = printLogoImg.src;
 }
 
+// PDF logo cache. The logo is fetched once at app startup so invoice generation
+// does not depend on a late image request after the Generate button is tapped.
+let invoiceLogoSvg = null;
+const invoiceLogoPromise = fetch('img/Logo.svg', { cache: 'force-cache' })
+    .then((response) => {
+        if (!response.ok) throw new Error(`Logo request failed: ${response.status}`);
+        return response.text();
+    })
+    .then((svg) => {
+        invoiceLogoSvg = svg;
+        return svg;
+    })
+    .catch((error) => {
+        console.warn('Invoice PDF logo preload failed:', error);
+        return null;
+    });
+
 // Authorization Verification
 async function isUserAuthorized(email) {
     if (!email) return false;
@@ -386,130 +403,330 @@ window.removeItem = function(index) {
     updateCartUI();
 }
 
-// Generate & Print Invoice
+// Generate Invoice -> real PDF
+//
+// The invoice is now rendered directly into a PDF with pdfmake instead of
+// asking Safari/Chrome to print the webpage. This removes the mobile-browser
+// print pipeline from the critical path while leaving the visible UI intact.
+// A blank tab is opened synchronously from the user's tap, then pdfmake fills
+// that already-authorized window after the PDF has been generated.
 const generateBtn = document.getElementById('generate-btn');
-generateBtn.addEventListener('click', (e) => {
+
+function buildInvoiceDocDefinition({
+    invNum,
+    dateString,
+    clientName,
+    clientAddress,
+    items,
+    subtotal,
+    discountPct,
+    discountAmount,
+    finalTotal,
+    logoSvg
+}) {
+    const currency = (value) => formatINR(value);
+
+    const descriptionCell = (item) => {
+        const meta = [];
+        if (item.category) meta.push(`Category: ${item.category}`);
+        meta.push(`Batch : ${item.batch || 'As Per Pack'}`);
+        meta.push(`Mfg Dt. : ${item.mfg || 'As Per Pack'}`);
+        meta.push(`MRP : ${Math.round(item.rate + (item.rate * 0.2))}`);
+
+        return {
+            stack: [
+                { text: item.name || '', bold: true, color: '#333333', margin: [0, 0, 0, 3] },
+                { text: meta.join('\n'), fontSize: 8, color: '#666666', lineHeight: 1.25 }
+            ],
+            margin: [0, 0, 0, 2]
+        };
+    };
+
+    const tableBody = [
+        [
+            { text: 'DESCRIPTION', style: 'tableHeader', alignment: 'left' },
+            { text: 'RATE', style: 'tableHeader', alignment: 'right' },
+            { text: 'QTY', style: 'tableHeader', alignment: 'right' },
+            { text: 'AMOUNT', style: 'tableHeader', alignment: 'right' }
+        ]
+    ];
+
+    items.forEach((item) => {
+        const itemTotal = item.rate * item.qty;
+        tableBody.push([
+            descriptionCell(item),
+            { text: currency(item.rate), alignment: 'right', margin: [0, 2, 0, 2] },
+            { text: String(item.qty), alignment: 'right', margin: [0, 2, 0, 2] },
+            { text: currency(itemTotal), alignment: 'right', margin: [0, 2, 0, 2] }
+        ]);
+    });
+
+    const logoNode = logoSvg
+        ? { svg: logoSvg, fit: [32, 35], alignment: 'left' }
+        : { text: '', width: 32 };
+
+    const header = {
+        columns: [
+            { width: 38, stack: [logoNode] },
+            {
+                width: '*',
+                stack: [
+                    { text: 'Varahi Biologicals', style: 'companyName' },
+                    { text: 'Plot No 60/A, D.No.2-30/JV/90/A/BR/603, JV Colony, Gachibowli', style: 'companyInfo' },
+                    { text: 'Hyderabad 500032', style: 'companyInfo' },
+                    { text: 'GSTIN : 36AUCPK7425M1ZB', style: 'companyInfo' },
+                    { text: '8333979678', style: 'companyInfo' },
+                    { text: 'varahibio@gmail.com', style: 'companyInfo' }
+                ],
+                margin: [4, 0, 8, 0]
+            },
+            {
+                width: 42,
+                alignment: 'right',
+                stack: [
+                    { text: 'BILL OF SUPPLY', style: 'metaLabel', alignment: 'right' },
+                    { text: invNum, style: 'metaValue', alignment: 'right' },
+                    { text: 'DATE', style: 'metaLabel', alignment: 'right', margin: [0, 10, 0, 0] },
+                    { text: dateString, style: 'metaValue', alignment: 'right' },
+                    { text: 'DUE', style: 'metaLabel', alignment: 'right', margin: [0, 10, 0, 0] },
+                    { text: 'On Receipt', style: 'metaValue', alignment: 'right' },
+                    { text: 'BALANCE DUE', style: 'metaLabel', alignment: 'right', margin: [0, 10, 0, 0] },
+                    { text: `INR ${finalTotal.toFixed(2)}`, style: 'metaValueBold', alignment: 'right' }
+                ]
+            }
+        ],
+        columnGap: 8,
+        margin: [0, 0, 0, 18]
+    };
+
+    const billTo = {
+        stack: [
+            { text: 'BILL TO', style: 'metaLabel' },
+            { text: clientName, style: 'billToName' },
+            { text: clientAddress || '', style: 'billToAddress' }
+        ],
+        margin: [0, 0, 0, 16]
+    };
+
+    const totals = {
+        columns: [
+            { width: '*', text: '' },
+            {
+                width: 78,
+                table: {
+                    widths: ['*', 'auto'],
+                    body: [
+                        [
+                            { text: 'SUBTOTAL', style: 'totalLabel', border: [false, false, false, false] },
+                            { text: currency(subtotal), style: 'totalValue', border: [false, false, false, false] }
+                        ],
+                        ...(discountAmount > 0 ? [[
+                            { text: 'DISCOUNT', style: 'totalLabel', border: [false, false, false, false] },
+                            { text: `- ${currency(discountAmount)}`, style: 'totalValue', border: [false, false, false, false] }
+                        ]] : []),
+                        [
+                            { text: 'TOTAL', style: 'totalLabelStrong', border: [false, true, false, false], margin: [0, 8, 0, 0] },
+                            { text: currency(finalTotal), style: 'totalValueStrong', border: [false, true, false, false], margin: [0, 8, 0, 0] }
+                        ],
+                        [
+                            { text: 'BALANCE DUE', style: 'balanceLabel', border: [false, true, false, true] },
+                            { text: `INR ${finalTotal.toFixed(2)}`, style: 'balanceValue', border: [false, true, false, true] }
+                        ]
+                    ]
+                },
+                layout: {
+                    hLineWidth: (i, node) => (i === 0 || i === node.table.body.length) ? 0 : 0.6,
+                    vLineWidth: () => 0,
+                    hLineColor: () => '#DDDDDD',
+                    paddingLeft: () => 0,
+                    paddingRight: () => 0,
+                    paddingTop: () => 4,
+                    paddingBottom: () => 4
+                }
+            }
+        ],
+        margin: [0, 6, 0, 0]
+    };
+
+    return {
+        pageSize: 'A4',
+        pageMargins: [20, 20, 20, 20],
+        info: {
+            title: `Varahi Invoice ${invNum}`,
+            author: 'Varahi Biologicals',
+            subject: 'Bill of Supply'
+        },
+        content: [
+            header,
+            billTo,
+            {
+                table: {
+                    headerRows: 1,
+                    widths: ['*', 30, 22, 34],
+                    body: tableBody
+                },
+                layout: {
+                    hLineWidth: (i, node) => (i === 0 || i === 1 || i === node.table.body.length) ? 0.8 : 0,
+                    vLineWidth: () => 0,
+                    hLineColor: () => '#333333',
+                    paddingLeft: (i) => i === 0 ? 0 : 4,
+                    paddingRight: (i) => i === 3 ? 0 : 4,
+                    paddingTop: (i) => i === 0 ? 5 : 8,
+                    paddingBottom: (i) => i === 0 ? 5 : 8
+                }
+            },
+            totals
+        ],
+        defaultStyle: {
+            font: 'Roboto',
+            fontSize: 9,
+            color: '#333333'
+        },
+        styles: {
+            companyName: { fontSize: 16, bold: true, margin: [0, 0, 0, 5] },
+            companyInfo: { fontSize: 8.5, color: '#555555', margin: [0, 1.5, 0, 0] },
+            metaLabel: { fontSize: 7.5, bold: true, color: '#555555', margin: [0, 0, 0, 2] },
+            metaValue: { fontSize: 8.5, color: '#333333' },
+            metaValueBold: { fontSize: 8.5, bold: true, color: '#333333' },
+            billToName: { fontSize: 11, bold: true, margin: [0, 3, 0, 2] },
+            billToAddress: { fontSize: 9, color: '#555555', lineHeight: 1.2 },
+            tableHeader: { fontSize: 7.5, bold: true, color: '#555555' },
+            totalLabel: { fontSize: 8.5, color: '#555555' },
+            totalValue: { fontSize: 8.5, color: '#333333', alignment: 'right' },
+            totalLabelStrong: { fontSize: 9, bold: true, color: '#333333' },
+            totalValueStrong: { fontSize: 9, bold: true, color: '#333333', alignment: 'right' },
+            balanceLabel: { fontSize: 9, bold: true, color: '#333333' },
+            balanceValue: { fontSize: 10, bold: true, color: '#333333', alignment: 'right' }
+        }
+    };
+}
+
+async function generateInvoicePdf(docDefinition, targetWindow) {
+    if (!window.pdfMake) {
+        throw new Error('PDF engine did not load. Please refresh the page and try again.');
+    }
+
+    const pdf = window.pdfMake.createPdf(docDefinition);
+
+    // pdfmake 0.3.x supports passing an already-opened window for async PDF
+    // generation. This avoids a second popup attempt after the user gesture.
+    if (targetWindow && !targetWindow.closed) {
+        await pdf.open(targetWindow);
+    } else {
+        // Last-resort fallback if the browser blocked the initial blank tab.
+        // This replaces the current app tab with the generated PDF instead of
+        // falling back to window.print().
+        await pdf.open(window);
+    }
+}
+
+generateBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (cart.length === 0) {
-        alert("Cannot generate an empty invoice. Add items to the bill.");
+        alert('Cannot generate an empty invoice. Add items to the bill.');
         return;
     }
 
-    // Give instant feedback the tap registered. This has to be set
-    // *before* window.print() below, and window.print() itself must
-    // still fire perfectly synchronously afterwards — see note there.
     setButtonLoading(generateBtn, true, 'Preparing…');
 
-    const clientName = document.getElementById('client-name').value || "Cash Customer";
-    const clientAddress = document.getElementById('client-address').value || "";
-    const invNum = invoiceNumInput.value.trim() || "INV0001";
-    
-    const rawDate = dateInput.value;
-    const parsedDate = new Date(rawDate);
-    const dateString = parsedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-    document.getElementById('print-inv-num').textContent = invNum;
-    document.getElementById('print-date').textContent = dateString;
-    document.getElementById('print-client-name').textContent = clientName;
-    document.getElementById('print-client-address').textContent = clientAddress;
-
-    // Fire and Forget: Update Counter in Background
-    const numericMatch = invNum.match(/\d+/);
-    if (numericMatch) {
-        const usedNumber = parseInt(numericMatch[0], 10);
-        setDoc(doc(db, "config", "invoiceCounter"), { lastNumber: usedNumber }, { merge: true }).catch(console.error);
+    // Open the destination window immediately while this is still a trusted
+    // user gesture. PDF generation itself is asynchronous.
+    const pdfWindow = window.open('', '_blank');
+    if (pdfWindow) {
+        try {
+            pdfWindow.document.title = 'Preparing invoice…';
+            pdfWindow.document.body.innerHTML = `
+                <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;padding:32px;text-align:center;color:#555;">
+                    Preparing invoice…
+                </div>`;
+        } catch (error) {
+            console.warn('Could not write PDF preparation page:', error);
+        }
     }
 
-    const tbody = document.getElementById('print-table-body');
-    tbody.innerHTML = "";
-    
-    let subtotal = 0;
+    try {
+        const clientName = document.getElementById('client-name').value.trim() || 'Cash Customer';
+        const clientAddress = document.getElementById('client-address').value.trim();
+        const invNum = invoiceNumInput.value.trim() || 'INV0001';
 
-    cart.forEach(item => {
-        const itemTotal = item.rate * item.qty;
-        subtotal += itemTotal;
+        const rawDate = dateInput.value;
+        const parsedDate = new Date(`${rawDate}T00:00:00`);
+        const dateString = parsedDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
 
-        const tr = document.createElement('tr');
-        const categoryTag = item.category ? `Category: ${item.category}<br>` : "";
-        
-        tr.innerHTML = `
-            <td style="text-align: left;">
-                <strong style="color: #333;">${item.name}</strong>
-                <div class="print-item-meta">
-                    ${categoryTag}
-                    Batch : ${item.batch}<br>
-                    Mfg Dt. : ${item.mfg}<br>
-                    MRP : ${Math.round(item.rate + (item.rate * 0.2))}
-                </div>
-            </td>
-            <td style="text-align: right;">${formatINR(item.rate)}</td>
-            <td style="text-align: right;">${item.qty}</td>
-            <td style="text-align: right;">${formatINR(itemTotal)}</td>
-        `;
-        tbody.appendChild(tr);
-    });
+        let subtotal = 0;
+        cart.forEach((item) => {
+            subtotal += item.rate * item.qty;
+        });
 
-    const discountPct = parseFloat(discountInput.value) || 0;
-    const discountAmount = subtotal * (discountPct / 100);
-    const finalTotal = subtotal - discountAmount;
+        const discountPct = parseFloat(discountInput.value) || 0;
+        const discountAmount = subtotal * (discountPct / 100);
+        const finalTotal = subtotal - discountAmount;
 
-    document.getElementById('print-subtotal').textContent = formatINR(subtotal);
-    
-    const printDiscountRow = document.getElementById('print-discount-row');
-    if (discountAmount > 0) {
-        printDiscountRow.style.display = 'flex';
-        document.getElementById('print-discount-val').textContent = `- ${formatINR(discountAmount)}`;
-    } else {
-        printDiscountRow.style.display = 'none';
-    }
+        // Wait only for the logo data that was requested at app startup. If
+        // that request failed, the PDF is still generated without the logo.
+        if (!invoiceLogoSvg) {
+            await invoiceLogoPromise;
+        }
 
-    document.getElementById('print-total').textContent = formatINR(finalTotal);
-    document.getElementById('print-balance-top').textContent = formatINR(finalTotal).replace('₹', '');
-    document.getElementById('print-balance-bottom').textContent = formatINR(finalTotal).replace('₹', '');
-
-    // Fire and Forget: Save to Cloud if requested
-    if (saveCheckbox.checked) {
-        const invoiceRecord = {
-            invoiceNumber: invNum,
-            date: dateString,
-            clientName: clientName,
-            clientAddress: clientAddress,
+        const docDefinition = buildInvoiceDocDefinition({
+            invNum,
+            dateString,
+            clientName,
+            clientAddress,
             items: cart,
-            subtotal: subtotal,
-            discountPct: discountPct,
-            discountAmount: discountAmount,
-            total: finalTotal,
-            savedBy: currentAuthenticatedUser ? currentAuthenticatedUser.email : 'System',
-            createdAt: new Date().toISOString()
-        };
-        setDoc(doc(db, "invoices", invNum), invoiceRecord).then(() => {
-            console.log(`Invoice ${invNum} saved to cloud.`);
-        }).catch(console.error);
-    }
+            subtotal,
+            discountPct,
+            discountAmount,
+            finalTotal,
+            logoSvg: invoiceLogoSvg
+        });
 
-    // Call print() synchronously, in the same tick as the click.
-    // NOTE: iOS Safari requires window.print() to run inside the direct,
-    // unbroken call stack of the user's tap. Any delay — even a
-    // requestAnimationFrame or setTimeout(0) — makes iOS treat it as an
-    // "automatic" print, which it silently defers to the next real user
-    // gesture and then flags with a "This website has been blocked from
-    // automatically printing" prompt. That's what was happening before:
-    // the Logout button appeared to trigger printing because it was the
-    // next tap iOS trusted enough to flush the pending request through.
-    // The real fix is to make sure nothing async stands between the tap
-    // and this call — the print logo is preloaded (see top of file) and
-    // served locally specifically so this can stay synchronous.
-    const originalTitle = document.title;
-    document.title = `varahi - ${invNum}`;
+        // Keep the existing Firestore behaviour exactly as before. PDF output
+        // no longer depends on these writes completing.
+        const numericMatch = invNum.match(/\d+/);
+        if (numericMatch) {
+            const usedNumber = parseInt(numericMatch[0], 10);
+            setDoc(doc(db, 'config', 'invoiceCounter'), { lastNumber: usedNumber }, { merge: true })
+                .catch(console.error);
+        }
 
-    window.print();
+        if (saveCheckbox.checked) {
+            const invoiceRecord = {
+                invoiceNumber: invNum,
+                date: dateString,
+                clientName: clientName,
+                clientAddress: clientAddress,
+                items: cart,
+                subtotal: subtotal,
+                discountPct: discountPct,
+                discountAmount: discountAmount,
+                total: finalTotal,
+                savedBy: currentAuthenticatedUser ? currentAuthenticatedUser.email : 'System',
+                createdAt: new Date().toISOString()
+            };
+            setDoc(doc(db, 'invoices', invNum), invoiceRecord)
+                .then(() => console.log(`Invoice ${invNum} saved to cloud.`))
+                .catch(console.error);
+        }
 
-    setTimeout(() => {
-        document.title = originalTitle;
+        await generateInvoicePdf(docDefinition, pdfWindow);
         setButtonLoading(generateBtn, false);
-    }, 600);
+    } catch (error) {
+        console.error('Invoice PDF generation failed:', error);
+        if (pdfWindow && !pdfWindow.closed) {
+            try {
+                pdfWindow.close();
+            } catch (_) {}
+        }
+        setButtonLoading(generateBtn, false);
+        alert('Could not generate the invoice PDF. Please try again.');
+    }
 });
 
 // Search Saved Invoice

@@ -1,7 +1,7 @@
 // Varahi Invoices — Service Worker
 // Bump CACHE_VERSION whenever app-shell files change so returning users
 // pick up the new version instead of a stale cached copy.
-const CACHE_VERSION = 'varahi-invoices-v1';
+const CACHE_VERSION = 'varahi-invoices-v2-pdf';
 
 const APP_SHELL = [
     './',
@@ -45,7 +45,7 @@ self.addEventListener('fetch', (event) => {
     const isGet = event.request.method === 'GET';
 
     if (!isSameOrigin || !isGet) {
-        return; // let the browser handle it normally
+        return;
     }
 
     event.respondWith(
