@@ -1,7 +1,7 @@
 // Varahi Invoices — Service Worker
 // Bump CACHE_VERSION whenever app-shell files change so returning users
 // pick up the new version instead of a stale cached copy.
-const CACHE_VERSION = 'varahi-invoices-v2-pdf';
+const CACHE_VERSION = 'varahi-invoices-v5-roboto';
 
 const APP_SHELL = [
     './',
