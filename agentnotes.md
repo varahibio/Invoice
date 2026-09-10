@@ -117,6 +117,10 @@ Authentication is secured via Firebase's authorized domains list. Only the follo
 ## 8. Changelog / Agent Log
 *Newest entries at top. Each entry: what changed, why, and current verification status.*
 
+### hello this is user
+* Im reverting the app to it's core functionality, currently we have this - android - not working, pc working, ios doesnt work as usual. so reverting to the old build where android works, pc works but ios doesn't.
+
+
 ### 2026-09-10 (Synchronous Native Print Attempt & Failure)
 *   **What was attempted:** Completely removed third-party PDF generation libraries (`html2pdf.js`) and popup/blob tab-opening tricks. Reverted strictly to a single "Generate Invoice" button executing a synchronous `window.print()` call with document-title hijacking (`Varahi_Invoice_INVXXXX`) to let the native OS handle printing and saving.
 *   **Results / Real-Device Failures:**
