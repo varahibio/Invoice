@@ -6,18 +6,25 @@ Varahi Invoices is a small Vanilla JavaScript Progressive Web App hosted on GitH
 
 The application uses:
 
-* Vanilla HTML/CSS/JavaScript
-* Firebase Authentication
-* Firebase Firestore
-* Google Sign-In
-* Email/password authentication
-* Firestore-backed product catalogue
-* Firestore-backed invoice storage
-* Client-side invoice generation
-* PWA manifest
-* Service worker
+- Vanilla HTML/CSS/JavaScript
+- Firebase Authentication
+- Firebase Firestore
+- Google Sign-In
+- Email/password authentication
+- Firestore-backed product catalogue
+- Firestore-backed invoice storage
+- Client-side PDF generation
+- PWA manifest
+- Service worker
 
 There is no application backend hosted on GitHub Pages.
+
+There is no Firebase Cloud Function for PDF generation.
+
+There is no Firebase Storage dependency for generated PDFs.
+
+There is no paid PDF-generation API.
+
 
 ---
 
@@ -27,63 +34,81 @@ There is no application backend hosted on GitHub Pages.
 
 Contains:
 
-* Login screen
-* Google sign-in button
-* Email/password login
-* Main invoice creation screen
-* Product selector
-* Cart
-* Discount field
-* Save-to-cloud checkbox
-* Generate Invoice button
-* Saved invoice search
-* Invoice details screen
-* Legacy hidden print-area markup
-* pdfmake browser bundles
-* Service-worker registration
+- Login screen
+- Google sign-in button
+- Email/password login
+- Main invoice creation screen
+- Product selector
+- Quantity field
+- Batch field
+- Manufacturing-date field
+- Cart
+- Discount field
+- Save-to-cloud checkbox
+- Generate Invoice button
+- Saved invoice search
+- Invoice details screen
+- Legacy hidden `print-area` markup
+- pdfmake browser bundles
+- Service-worker registration
+
+The visible application UI is intentionally unchanged by the PDF-generation migration.
+
 
 ### `style.css`
 
 Contains:
 
-* Application UI styling
-* Login screen
-* Invoice form
-* Buttons
-* Loading states
-* Search/details UI
-* Responsive/mobile styling
-* Legacy print styling
+- Application UI styling
+- Login screen
+- Invoice form
+- Buttons
+- Loading states
+- Search/details UI
+- Responsive/mobile styling
+- Legacy print styling
 
-The visible UI is intentionally unchanged by the PDF-generation migration.
+The application UI continues to use the existing Haffer font styling.
+
+Haffer is a UI font only.
+
+Haffer is NOT used by the current PDF renderer.
+
 
 ### `app.js`
 
 Contains:
 
-* Firebase initialization
-* Authentication
-* Authorization checks
-* Product loading
-* Invoice number sequencing
-* Cart management
-* Discount calculations
-* Invoice saving
-* Saved invoice search
-* Invoice details
-* Client-side PDF generation
+- Firebase initialization
+- Authentication
+- Authorization checks
+- Product loading
+- Invoice number sequencing
+- Cart management
+- Discount calculations
+- Invoice saving
+- Saved invoice search
+- Invoice details
+- Client-side PDF generation
+- PDF pre-generation/cache
+- Native mobile PDF sharing
+- PDF fallback handling
+
 
 ### `manifest.json`
 
 PWA manifest.
 
+
 ### `sw.js`
 
-Minimal app-shell service worker.
+Minimal app-shell service worker with versioned caching.
+
 
 ### `img/Logo.svg`
 
 Primary Varahi Biologicals logo.
+
 
 ---
 
@@ -103,6 +128,7 @@ Expected field:
 
 `active: true`
 
+
 ### Products
 
 Collection:
@@ -111,9 +137,10 @@ Collection:
 
 Expected fields include:
 
-* `name`
-* `rate`
-* `category`
+- `name`
+- `rate`
+- `category`
+
 
 ### Invoice counter
 
@@ -125,6 +152,19 @@ Field:
 
 `lastNumber`
 
+The next invoice number is generated from:
+
+`lastNumber + 1`
+
+The displayed invoice number uses the format:
+
+`INV0001`
+
+Example:
+
+`INV0042`
+
+
 ### Saved invoices
 
 Collection:
@@ -133,9 +173,12 @@ Collection:
 
 Document ID:
 
-invoice number, e.g.
+invoice number
+
+Example:
 
 `INV0001`
+
 
 ---
 
@@ -143,9 +186,9 @@ invoice number, e.g.
 
 The application uses Firebase Authentication with:
 
-* Google popup sign-in
-* Email/password sign-in
-* Browser local persistence
+- Google popup sign-in
+- Email/password sign-in
+- Browser local persistence
 
 After authentication:
 
@@ -153,9 +196,13 @@ After authentication:
 2. The app checks `authorized_users/{lowercase email}`.
 3. Access is allowed only when `active === true`.
 4. Authorized users see the invoice application.
-5. Unauthorized users are signed out and shown the Access Denied screen.
+5. Unauthorized users are signed out.
+6. Unauthorized users are shown the Access Denied screen.
 
-The loading overlay is only displayed when the user actively initiates sign-in or logout.
+The loading overlay is shown when the user actively initiates sign-in or logout.
+
+Authentication and authorization logic should not be changed when modifying the PDF system unless explicitly required.
+
 
 ---
 
@@ -163,31 +210,64 @@ The loading overlay is only displayed when the user actively initiates sign-in o
 
 Invoice records contain:
 
-* `invoiceNumber`
-* `date`
-* `clientName`
-* `clientAddress`
-* `items`
-* `subtotal`
-* `discountPct`
-* `discountAmount`
-* `total`
-* `savedBy`
-* `createdAt`
+- `invoiceNumber`
+- `date`
+- `clientName`
+- `clientAddress`
+- `items`
+- `subtotal`
+- `discountPct`
+- `discountAmount`
+- `total`
+- `savedBy`
+- `createdAt`
 
-Each item contains:
+Each cart item contains:
 
-* `id`
-* `name`
-* `rate`
-* `category`
-* `qty`
-* `batch`
-* `mfg`
+- `id`
+- `name`
+- `rate`
+- `category`
+- `qty`
+- `batch`
+- `mfg`
+
+The cart combines identical products when both:
+
+- product ID matches
+- batch matches
+
+Quantity is increased rather than creating a duplicate cart row.
+
 
 ---
 
-## 6. Generate Invoice / PDF Architecture
+## 6. Invoice Calculations
+
+For every cart item:
+
+`item total = rate × quantity`
+
+Invoice subtotal:
+
+`subtotal = sum of all item totals`
+
+Discount:
+
+`discountAmount = subtotal × (discountPct / 100)`
+
+Final total:
+
+`finalTotal = subtotal - discountAmount`
+
+Currency formatting uses the Indian locale and INR:
+
+`Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" })`
+
+
+---
+
+## 7. Generate Invoice / PDF Architecture
 
 ### A. Previous Native Browser Print Pipeline — SUPERSEDED
 
@@ -197,296 +277,295 @@ The original Generate Invoice flow used:
 
 This depended on the browser's HTML print engine.
 
-The application experienced:
+Problems encountered included:
 
-* iOS print dialog failures
-* delayed iOS print behavior
-* oversized SVG logo on iOS
-* Android blank/extra pages
-* inconsistent behavior between Safari, Chrome and desktop browsers
+- iOS print dialog failures
+- delayed iOS print behaviour
+- oversized SVG logo on iOS
+- Android blank/extra pages
+- inconsistent behaviour between Safari, Chrome and desktop browsers
+- browser-specific print-layout differences
 
 The native browser print pipeline is no longer used by Generate Invoice.
 
----
+Do NOT restore `window.print()` as the primary PDF mechanism.
 
-### B. Previous iOS SVG Print Issue — SUPERSEDED FOR GENERATE FLOW
-
-The print-area originally depended on the browser loading and printing the SVG logo.
-
-On iOS, the SVG could render at an incorrect oversized size during printing.
-
-The current PDF flow does not rely on browser print rendering.
 
 ---
 
-### C. Authentication
+### B. Previous Popup-Based PDF Opening Architecture — SUPERSEDED
 
-Authentication remains unchanged.
+An earlier PDF implementation attempted to:
 
-Firebase Authentication continues to handle:
+1. Open a blank browser tab synchronously.
+2. Perform asynchronous PDF generation.
+3. Put the generated PDF into the previously opened destination.
 
-* Google popup authentication
-* Email/password authentication
-* Local persistence
-* Authorization verification
+This was intended to preserve popup permission.
 
----
+That architecture is no longer the preferred current implementation for iOS.
 
-### D. Direct Client-Side PDF Generation — CURRENT
+The current implementation pre-generates the PDF before the user presses Generate whenever possible.
 
-The Generate Invoice button now uses **pdfmake 0.3.11**.
-
-The library is loaded directly in `index.html`:
-
-* `pdfmake.min.js`
-* `vfs_fonts.js`
-
-No backend PDF service is used.
-
-No Firebase Cloud Function is used.
-
-No Firebase Storage bucket is used.
-
-No paid PDF API is used.
-
-PDF generation happens entirely inside the browser.
-
-The PDF is generated as an A4 document containing:
-
-* Varahi Biologicals logo
-* Company information
-* Bill of Supply heading
-* Invoice number
-* Date
-* Due information
-* Balance due
-* Bill To information
-* Product table
-* Product category
-* Batch
-* Manufacturing date
-* MRP
-* Rate
-* Quantity
-* Amount
-* Subtotal
-* Discount
-* Total
-* Balance Due
-
-The PDF uses pdfmake's embedded Roboto VFS font.
-
-The local `img/Logo.svg` file is fetched as SVG text during application startup and supplied directly to pdfmake.
-
-This avoids browser print-layout problems with the SVG.
 
 ---
 
-### E. Mobile PDF Delivery
+### C. Current PDF Renderer — pdfmake
 
-The Generate Invoice click opens a blank destination tab synchronously:
+The current Generate Invoice system uses:
 
-`window.open('', '_blank')`
+**pdfmake 0.3.11**
 
-This occurs immediately inside the user's button click.
+pdfmake is loaded in `index.html` using its browser bundles:
 
-The application then performs the asynchronous work needed to build the PDF.
+- `pdfmake.min.js`
+- `vfs_fonts.js`
 
-Once the PDF is ready, pdfmake opens the generated PDF in the already-authorized destination window.
+The PDF is generated entirely on the client.
 
-This is intended to avoid popup blocking caused by attempting to open a new window only after asynchronous work has completed.
+There is:
 
-If the initial destination window is unavailable, the implementation falls back to opening the generated PDF in the current browser window.
+- no backend PDF service
+- no Firebase Function
+- no Firebase Storage requirement
+- no paid PDF API
+- no external PDF font dependency
 
-It does **not** fall back to `window.print()`.
-
----
-
-### F. Firestore Behaviour
-
-The existing Firestore behaviour is retained.
-
-The invoice counter is updated in the background.
-
-When `Save Invoice to Cloud?` is checked, the invoice record is written to:
-
-`invoices/{invoiceNumber}`
-
-PDF generation does not wait for these Firestore writes to complete.
 
 ---
 
-### G. Legacy Print DOM
+## 8. Current PDF Font — ROBOTO
 
-The old `#print-area` remains in `index.html`.
+The PDF uses pdfmake's built-in:
 
-It is retained for compatibility with the existing CSS and project structure.
+`Roboto`
 
-The new Generate Invoice flow does not populate it for printing and does not call:
+The current implementation intentionally does NOT register any custom PDF font.
 
-`window.print()`
+There is no:
 
-The visible application UI remains unchanged.
+`pdfMake.addFonts(...)`
 
----
+There is no custom Haffer font registration.
 
-## 7. Local Development Guidelines
+There is no Valley Sans font registration.
 
-### Local Server
+There are no external `.ttf` requests for PDF generation.
 
-Use a local server such as VS Code Live Server.
+This was deliberately chosen for reliability and simplicity.
 
-Example:
+### Important distinction
 
-`http://127.0.0.1:5501`
+The application UI can continue using Haffer through `style.css`.
 
-### iOS Testing
+The PDF uses Roboto.
 
-iOS behaviour must be tested on an actual iPhone.
+Therefore:
 
-Desktop WebKit/Playwright emulation should not be treated as proof of iOS behaviour because:
+- UI → Haffer
+- PDF → Roboto
 
-* Safari print behaviour is device-specific
-* PWA standalone behaviour is device-specific
-* popup restrictions differ
-* PDF viewer behaviour differs
-* iOS browser lifecycle behaviour differs
+Do not modify the UI font merely to change the PDF font.
 
-For iOS verification, deploy to GitHub Pages and test using the real device.
+If a future custom PDF font is introduced, it should be treated as a separate PDF-only dependency.
+
 
 ---
 
-## 8. Service Worker
+## 9. PDF Document Generation
 
-`sw.js` uses a versioned cache:
+`app.js` builds an A4 pdfmake document definition directly.
 
-`varahi-invoices-v2-pdf`
+The PDF contains:
 
-The service worker uses a network-first strategy for same-origin GET requests.
+- Varahi Biologicals logo
+- Company information
+- Bill of Supply heading
+- Invoice number
+- Invoice date
+- Due information
+- Balance Due
+- Bill To information
+- Product description
+- Batch
+- Manufacturing date
+- Rate
+- Quantity
+- Amount
+- Subtotal
+- Discount when applicable
+- Total
+- Balance Due
 
-It intentionally does not intercept:
+The PDF does not depend on the browser's HTML layout.
 
-* Firebase SDK requests
-* Firestore requests
-* Firebase Authentication
-* Google authentication
-* External CDN requests
+The PDF is generated from structured JavaScript data.
 
-The pdfmake CDN dependency is therefore not cached by the service worker.
+This makes PDF layout independent of the visible UI CSS.
 
-Whenever `index.html`, `style.css`, `app.js`, or another app-shell file is changed, increment `CACHE_VERSION` in `sw.js`.
-
----
-
-## 9. Current Verification Status
-
-The PDF migration has been implemented but requires real-device testing.
-
-Required testing:
-
-### Desktop
-
-* Generate invoice
-* Multiple items
-* Discount
-* No discount
-* ₹ currency
-* Logo
-* Saved invoice
-* Search invoice
-* View details
-
-### Android Chrome
-
-* Generate on first tap
-* PDF opens
-* PDF is not blank
-* PDF has one correct A4 page where appropriate
-* Logo size
-* ₹ rendering
-* Multiple items
-* Discount
-* Save Invoice to Cloud
-
-### iPhone Safari
-
-* Generate on first tap
-* Destination PDF tab opens
-* PDF renders
-* Logo size
-* ₹ rendering
-* Multiple items
-* Discount
-* Save Invoice to Cloud
-
-### iPhone Installed PWA
-
-* Generate on first tap
-* PDF opens correctly
-* PDF viewer/share/save behaviour
-* No application crash
-* No popup failure
-* No blank output
 
 ---
 
-## 10. Changelog / Agent Log
+## 10. Logo Handling
 
-*Newest entries at top.*
+The local:
 
-### 2026-09-10 — Direct Client-Side PDF Renderer
+`img/Logo.svg`
 
-* Replaced the Generate Invoice -> `window.print()` pipeline with direct A4 PDF generation using **pdfmake 0.3.11**.
-* No visible UI changes were made.
-* PDF output recreates the existing invoice structure directly in PDF space.
-* The local SVG logo is embedded directly as SVG in the PDF.
-* The Generate click synchronously opens a blank destination tab.
-* The PDF is generated asynchronously and then opened in that already-authorized tab.
-* This avoids depending on the Safari/Chrome webpage print pipeline.
-* No Firebase Function was added.
-* No Firebase Storage was added.
-* No paid PDF service was added.
-* PDF generation remains client-side.
-* `index.html` now loads pdfmake and its VFS font bundle.
-* `app.js` contains the new PDF document-generation pipeline.
-* `sw.js` cache version was bumped.
-* `style.css` was intentionally left unchanged.
-* Real-device testing is still required.
+file is fetched as SVG text during application startup.
 
-### 2026-09-10 — User Reversion Context
+The SVG text is supplied directly to pdfmake.
 
-The user reverted toward the application's core functionality after testing previous print/PDF approaches.
+The PDF therefore embeds the logo as SVG rather than relying on the browser's print engine to render the HTML image.
 
-Observed state before the current PDF implementation:
+This avoids the previous iOS SVG print-size problem.
 
-* Android: previous build worked
-* PC: previous build worked
-* iOS: previous build continued to fail
+If the logo preload fails, the PDF generation code can continue without the embedded SVG logo rather than relying on browser print rendering.
 
-The objective of the current implementation is to remove the browser print pipeline entirely while keeping the existing invoice application and visible UI intact.
 
-### 2026-09-10 — Synchronous Native Print Attempt & Failure
+---
 
-* Completely removed third-party PDF generation libraries and popup/blob tab-opening tricks.
-* Attempted a direct synchronous `window.print()` call.
-* Used document-title hijacking for desktop PDF filenames.
-* PC remained functional.
-* Android produced blank PDF/print output.
-* iOS continued to fail.
-* The approach was rejected because mobile behaviour was inconsistent.
+## 11. iOS PDF Architecture — CURRENT
 
-### 2026-09-10 — Earlier Print/UX Changes
+### Why this architecture exists
 
-* Removed a double `requestAnimationFrame` delay around `window.print()`.
-* Added global loading feedback.
-* Added button loading states.
-* Added PWA manifest.
-* Added PWA icons.
-* Added service worker.
-* Added iOS safe-area support.
-* Added iOS-style design tokens.
-* Added responsive UI improvements.
-* Added logo preload.
-* Added Android print-page reset.
+iOS Safari/WebKit has strict transient user-activation requirements for actions such as native sharing.
 
-These changes remain in the project where applicable, but the new Generate Invoice PDF path no longer relies on browser printing.
+If the application waits for asynchronous PDF generation and only then calls a user-activation-sensitive API, Safari may reject the action.
+
+Therefore the current architecture attempts to prepare the PDF before the Generate button is pressed.
+
+
+### PDF pre-generation
+
+The application maintains:
+
+`preparedInvoicePdf`
+
+and:
+
+`preparedInvoiceSignature`
+
+The PDF is automatically prepared after relevant invoice data changes.
+
+Preparation is scheduled with a short debounce.
+
+Relevant inputs include:
+
+- client name
+- client address
+- invoice date
+- invoice number
+- cart contents
+- discount
+
+The generated PDF is stored as a `File` object.
+
+
+### Invoice signature
+
+A signature is generated from the current invoice state.
+
+The signature includes:
+
+- invoice number
+- date
+- client name
+- client address
+- cart items
+- product IDs
+- product names
+- rates
+- quantities
+- batches
+- manufacturing dates
+- discount percentage
+
+The cached PDF is reused only when its signature matches the current invoice state.
+
+
+---
+
+## 12. Generate Button Behaviour
+
+When Generate Invoice is pressed:
+
+1. The application checks that the cart is not empty.
+2. Current invoice data is captured.
+3. Firestore invoice/counter operations are initiated as appropriate.
+4. If a matching pre-generated PDF already exists, it is used immediately.
+5. On supported mobile browsers, the app attempts native file sharing.
+6. If native sharing is unavailable, the application uses a PDF fallback.
+7. `window.print()` is NOT called.
+
+The critical iOS path is:
+
+`Generate click → already-prepared PDF → navigator.share({ files: [file] })`
+
+This keeps the share operation within the user's button interaction.
+
+
+---
+
+## 13. Native PDF Sharing
+
+The current implementation checks for:
+
+`navigator.share`
+
+and:
+
+`navigator.canShare`
+
+with the prepared PDF file.
+
+The share call uses:
+
+```js
+navigator.share({
+    files: [preparedInvoicePdf],
+    title: preparedInvoicePdf.name
+});
+
+# iOS PDF Generation & Sharing Method
+
+## Overview
+
+The invoice PDF is generated entirely on the client side using **pdfmake 0.3.11**.
+
+The important part of the iOS implementation is **when the PDF is generated and when it is shared**.
+
+We do **not** wait until the user presses Generate Invoice to begin generating the PDF.
+
+Instead, the application prepares the PDF in advance and keeps the completed PDF in memory. When the user presses Generate Invoice, iOS can immediately receive the already-generated PDF through the native Web Share API.
+
+---
+
+## Complete Flow
+
+```text
+User opens invoice screen
+        ↓
+User enters invoice information
+        ↓
+Invoice state changes
+        ↓
+Application schedules PDF preparation
+        ↓
+pdfmake generates the PDF in the background
+        ↓
+PDF becomes a JavaScript File object
+        ↓
+File is stored in preparedInvoicePdf
+        ↓
+Application waits for further invoice changes
+        ↓
+User presses "Generate Invoice"
+        ↓
+Existing prepared PDF is used
+        ↓
+navigator.share({ files: [PDF] })
+        ↓
+iOS Share Sheet
+        ↓
+User saves or shares the PDF
