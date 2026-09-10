@@ -318,8 +318,8 @@ window.removeItem = function(index) {
     updateCartUI();
 }
 
-// Generate & Print Invoice
-document.getElementById('generate-btn').addEventListener('click', async (e) => {
+// Generate & Print Invoice (Now Synchronous for iOS)
+document.getElementById('generate-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -341,10 +341,11 @@ document.getElementById('generate-btn').addEventListener('click', async (e) => {
     document.getElementById('print-client-name').textContent = clientName;
     document.getElementById('print-client-address').textContent = clientAddress;
 
+    // Fire and Forget: Update Counter in Background (Removed async/await)
     const numericMatch = invNum.match(/\d+/);
     if (numericMatch) {
         const usedNumber = parseInt(numericMatch[0], 10);
-        await setDoc(doc(db, "config", "invoiceCounter"), { lastNumber: usedNumber }, { merge: true });
+        setDoc(doc(db, "config", "invoiceCounter"), { lastNumber: usedNumber }, { merge: true }).catch(console.error);
     }
 
     const tbody = document.getElementById('print-table-body');
@@ -394,29 +395,27 @@ document.getElementById('generate-btn').addEventListener('click', async (e) => {
     document.getElementById('print-balance-top').textContent = formatINR(finalTotal).replace('₹', '');
     document.getElementById('print-balance-bottom').textContent = formatINR(finalTotal).replace('₹', '');
 
-    // Check if Cloud Save is requested
+    // Fire and Forget: Save to Cloud if requested (Removed async/await)
     if (saveCheckbox.checked) {
-        try {
-            const invoiceRecord = {
-                invoiceNumber: invNum,
-                date: dateString,
-                clientName: clientName,
-                clientAddress: clientAddress,
-                items: cart,
-                subtotal: subtotal,
-                discountPct: discountPct,
-                discountAmount: discountAmount,
-                total: finalTotal,
-                savedBy: currentAuthenticatedUser ? currentAuthenticatedUser.email : 'System',
-                createdAt: new Date().toISOString()
-            };
-            await setDoc(doc(db, "invoices", invNum), invoiceRecord);
-            console.log(`Invoice ${invNum} successfully saved to Firestore.`);
-        } catch (err) {
-            console.error("Error saving invoice record to Firestore:", err);
-        }
+        const invoiceRecord = {
+            invoiceNumber: invNum,
+            date: dateString,
+            clientName: clientName,
+            clientAddress: clientAddress,
+            items: cart,
+            subtotal: subtotal,
+            discountPct: discountPct,
+            discountAmount: discountAmount,
+            total: finalTotal,
+            savedBy: currentAuthenticatedUser ? currentAuthenticatedUser.email : 'System',
+            createdAt: new Date().toISOString()
+        };
+        setDoc(doc(db, "invoices", invNum), invoiceRecord).then(() => {
+            console.log(`Invoice ${invNum} saved to cloud.`);
+        }).catch(console.error);
     }
 
+    // Set title and synchronously call print immediately
     const originalTitle = document.title;
     document.title = `varahi - ${invNum}`;
 

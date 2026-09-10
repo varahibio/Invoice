@@ -363,6 +363,20 @@ hr {
         padding-bottom: 20px;
     }
 
+    /* iOS SVG Fixes */
+    .print-logo-container {
+        width: 120px !important;
+        max-width: 120px !important;
+        flex-shrink: 0;
+    }
+
+    .print-logo-container img {
+        width: 120px !important;
+        max-width: 120px !important;
+        height: auto !important;
+        display: block;
+    }
+
     .print-company-info h2 {
         margin: 0 0 10px 0;
         font-size: 20px;
