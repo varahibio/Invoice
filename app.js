@@ -2,8 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { 
     getAuth, 
     signInWithEmailAndPassword, 
-    signInWithRedirect, 
-    getRedirectResult,
+    signInWithPopup, 
     GoogleAuthProvider, 
     signOut, 
     onAuthStateChanged,
@@ -30,15 +29,6 @@ const googleProvider = new GoogleAuthProvider();
 
 // Enable Local Persistence (Session persists across refreshes)
 setPersistence(auth, browserLocalPersistence).catch(console.error);
-
-// Catch mobile redirect login errors
-getRedirectResult(auth).catch((error) => {
-    const errorMsg = document.getElementById('error-msg');
-    if (errorMsg) {
-        errorMsg.style.display = 'block';
-        errorMsg.textContent = error.message || "Google sign-in failed.";
-    }
-});
 
 // Cart, Inactivity & Search Cache
 let cart = [];
@@ -174,11 +164,19 @@ function startInactivityTimer() {
     resetInactivityTimer();
 }
 
-// Google Sign-In (Switched to Redirect for iOS Safari compatibility)
+// Google Sign-In (Reverted to Popup)
 document.getElementById('google-login-btn').addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    signInWithRedirect(auth, googleProvider);
+    signInWithPopup(auth, googleProvider)
+        .then(() => {
+            document.getElementById('error-msg').style.display = 'none';
+        })
+        .catch((error) => {
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.style.display = 'block';
+            errorMsg.textContent = error.message || "Google sign-in failed.";
+        });
 });
 
 // Email/Password Login
